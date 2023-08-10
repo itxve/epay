@@ -26,9 +26,9 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
           <ul class="list-group">
             <li class="list-group-item"><span class="glyphicon glyphicon-stats"></span> <b>订单总数：</b><span id="count1"></span></li>
 			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>商户数量：</b><span id="count2"></span></li>
-			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>总计余额：</b><span id="usermoney"></span>元（1小时更新一次）</li>
-			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>结算总额：</b><span id="settlemoney"></span>元（1小时更新一次）</li>
-            <li class="list-group-item"><span class="glyphicon glyphicon-time"></span> <b>现在时间：</b> <?=$date?></li>
+			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>总计余额：</b><span id="usermoney"></span>元（自动更新）</li>
+			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>结算总额：</b><span id="settlemoney"></span>元（自动更新）</li>
+            <li class="list-group-item"><span class="glyphicon glyphicon-time"></span> <b>现在时间：</b> <span id="date"><?=$date?></span></li>
 			</li>
           </ul>
       </div>
@@ -47,7 +47,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 	</div>
 </div>
 	  <div class="panel panel-success">
-	    <div class="panel-heading"><h3 class="panel-title">支付方式收入统计（1小时更新一次）<span class="pull-right"><a href="javascript:getData(true)" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></a></span></h3></div>
+	    <div class="panel-heading"><h3 class="panel-title">支付方式收入统计（自动更新）<span class="pull-right"><a href="javascript:getData(true)" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></a></span></h3></div>
           <table class="table table-bordered table-striped">
 		    <thead><tr id="paytype_head"><th>日期</th></thead>
             <tbody id="paytype_list">
@@ -55,7 +55,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
           </table>
       </div>
 	  <div class="panel panel-warning">
-	    <div class="panel-heading"><h3 class="panel-title">支付通道收入统计（1小时更新一次）<span class="pull-right"><a href="javascript:getData(true)" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></a></span></h3></div>
+	    <div class="panel-heading"><h3 class="panel-title">支付通道收入统计（自动更新）<span class="pull-right"><a href="javascript:getData(true)" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></a></span></h3></div>
 		<div class="table-responsive">
           <table class="table table-bordered table-striped">
 		    <thead><tr id="channel_head"><th>日期</th></thead>
@@ -67,6 +67,40 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
     </div>
   </div>
 <script>
+// 60s刷新收入统计
+window.addEventListener('load', function() {
+    getData(true);
+    var countdown = 60; // 倒计时时间，单位为秒
+    var titleElement = document.getElementById('title');
+    var dateElement = document.getElementById('date');
+    var countdownInterval = setInterval(function() {
+        countdown--; // 每次减少1秒
+        if (countdown <= 0) {
+            getData(true);
+            countdown = 60; // 重设倒计时
+        }
+
+        var specificDate = new Date();
+        var year = specificDate.getFullYear();
+        var month = specificDate.getMonth() + 1;
+        var date = specificDate.getDate();
+        var hours = specificDate.getHours();
+        var minutes = specificDate.getMinutes();
+        var seconds = specificDate.getSeconds();
+        dateElement.textContent = year + "-" +
+            (month < 10 ? "0" + month : month) + "-" +
+            (date < 10 ? "0" + date : date) + " " +
+            (hours < 10 ? "0" + hours : hours) + ":" +
+            (minutes < 10 ? "0" + minutes : minutes) + ":" +
+            (seconds < 10 ? "0" + seconds : seconds);
+        titleElement.textContent = "后台管理首页 " + countdown + "s";
+    }, 1000);
+    // 清除定时器
+    window.addEventListener('unload', function() {
+        clearInterval(countdownInterval);
+    });
+});
+
 $(document).ready(function(){
 	getData();
 });
