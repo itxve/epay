@@ -1,0 +1,7 @@
+{
+    "require": {
+        "cccyun/alipay-sdk": "^1.1",
+        "cccyun/wechatpay-sdk": "^1.0",
+        "cccyun/qqpay-sdk": "^1.0"
+    }
+}

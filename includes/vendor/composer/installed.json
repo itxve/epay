@@ -1,0 +1,161 @@
+{
+    "packages": [
+        {
+            "name": "cccyun/alipay-sdk",
+            "version": "1.4",
+            "version_normalized": "1.4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/netcccyun/alipay-sdk-php.git",
+                "reference": "c6299991107d66481ed151dae1cd66889cb11a9e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/netcccyun/alipay-sdk-php/zipball/c6299991107d66481ed151dae1cd66889cb11a9e",
+                "reference": "c6299991107d66481ed151dae1cd66889cb11a9e",
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "time": "2023-07-11T06:36:34+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Alipay\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "caihong",
+                    "email": "admin@cccyun.cn"
+                }
+            ],
+            "description": "支付宝开放平台第三方 PHP SDK，基于官方最新版本，支持公钥和公钥证书2种模式。",
+            "keywords": [
+                "alipay",
+                "支付宝"
+            ],
+            "support": {
+                "issues": "https://github.com/netcccyun/alipay-sdk-php/issues",
+                "source": "https://github.com/netcccyun/alipay-sdk-php/tree/1.4"
+            },
+            "install-path": "../cccyun/alipay-sdk"
+        },
+        {
+            "name": "cccyun/qqpay-sdk",
+            "version": "1.2",
+            "version_normalized": "1.2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/netcccyun/qqpay-sdk-php.git",
+                "reference": "873e1d9f06f3cecdbad165fa921096437cc8bcbe"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/netcccyun/qqpay-sdk-php/zipball/873e1d9f06f3cecdbad165fa921096437cc8bcbe",
+                "reference": "873e1d9f06f3cecdbad165fa921096437cc8bcbe",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "time": "2023-04-02T02:46:22+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "QQPay\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "caihong",
+                    "email": "admin@cccyun.cn"
+                }
+            ],
+            "description": "QQ钱包支付第三方 PHP SDK，基于官方最新版本。",
+            "keywords": [
+                "QQ支付",
+                "qpay",
+                "qqpay"
+            ],
+            "support": {
+                "issues": "https://github.com/netcccyun/qqpay-sdk-php/issues",
+                "source": "https://github.com/netcccyun/qqpay-sdk-php/tree/1.2"
+            },
+            "install-path": "../cccyun/qqpay-sdk"
+        },
+        {
+            "name": "cccyun/wechatpay-sdk",
+            "version": "1.5",
+            "version_normalized": "1.5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/netcccyun/wechatpay-sdk-php.git",
+                "reference": "13bc59fe1aa47cd4d1bf8e96c7a259b3c53b036b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/netcccyun/wechatpay-sdk-php/zipball/13bc59fe1aa47cd4d1bf8e96c7a259b3c53b036b",
+                "reference": "13bc59fe1aa47cd4d1bf8e96c7a259b3c53b036b",
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "time": "2023-07-14T09:21:43+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "WeChatPay\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "caihong",
+                    "email": "admin@cccyun.cn"
+                }
+            ],
+            "description": "微信支付第三方 PHP SDK，基于官方最新版本，包含V2和V3两种接口。",
+            "keywords": [
+                "Wxpay",
+                "wechat",
+                "微信支付"
+            ],
+            "support": {
+                "issues": "https://github.com/netcccyun/wechatpay-sdk-php/issues",
+                "source": "https://github.com/netcccyun/wechatpay-sdk-php/tree/1.5"
+            },
+            "install-path": "../cccyun/wechatpay-sdk"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}
