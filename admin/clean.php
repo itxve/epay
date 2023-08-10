@@ -70,6 +70,13 @@ showmsg('删除资金明细成功！',1);
 定期清理数据有助于提升网站访问速度
 </div>
 </div>
+<div class="panel panel-primary">
+    <div class="panel-heading"><h3 class="panel-title">计划任务</h3></div>
+    <div class="panel-body">
+        <p>数据清理任务（每天0点一次或每小时一次）<br/> days=15 代表清理15天前的资金明细、结算记录、订单记录</p>
+        <li class="list-group-item"><?php echo $siteurl?>cron.php?do=clean&days=15&key=<?php echo $conf['cronkey']; ?></li>
+    </div>
+</div>
 <?php }?>
  </div>
 </div>

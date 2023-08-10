@@ -993,6 +993,9 @@ $("select[name='sms_api']").change(function(){
 <br/>
 <p>订单异步通知重试任务<br/>（如果有订单出现通知失败的，可以通过此条任务自动重新通知，通知重试时间：1分钟，3分钟，20分钟，1小时，2小时）</p>
 <li class="list-group-item"><?php echo $siteurl?>cron.php?do=notify&key=<?php echo $conf['cronkey']; ?></li>
+<br/>
+<p>数据清理任务（每天0点一次或每小时一次）<br/> days=15 代表清理15天前的资金明细、结算记录、订单记录</p>
+<li class="list-group-item"><?php echo $siteurl?>cron.php?do=clean&days=15&key=<?php echo $conf['cronkey']; ?></li>
 <?php if($DB->getColumn("SELECT count(*) from pre_psreceiver WHERE status=1")>0){ ?>
 <br/>
 <p>订单分账任务</p>

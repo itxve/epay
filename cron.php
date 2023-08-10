@@ -241,3 +241,23 @@ elseif($_GET['do']=='check'){
 		echo '商户订单成功率检查任务已完成<br/>';
 	}
 }
+elseif($_GET['do']=='clean'){
+    $days = $_GET['days'];
+    if(empty($days)) $days = "15";
+    $days = intval($days);
+    $days = date("Y-m-d H:i:s",strtotime("-{$days} days"));
+    $CACHE->clean();
+    // 清理资金明细
+    $d = $DB->exec("delete from `pre_record` where `date`<'".$days."'");
+    if ($d) echo '删除资金明细成功！ <br/>';
+    // 清理结算记录
+    $d = $DB->exec("delete from `pre_settle` where `addtime`<'".$days."'");
+    if ($d) echo '删除结算记录成功！ <br/>';
+    // 清理订单记录
+    $d = $DB->exec("delete from `pay_order` where addtime<'".$days."'");
+    if ($d) echo '删除订单记录成功！ <br/>';
+
+    $DB->exec("OPTIMIZE TABLE `pre_record`");
+    $DB->exec("OPTIMIZE TABLE `pre_settle`");
+    $DB->exec("OPTIMIZE TABLE `pre_order`");
+}
