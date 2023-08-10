@@ -38,7 +38,7 @@ class Plugin {
 
 	static public function loadForPay($s){
 		global $DB,$conf,$order,$channel,$ordername;
-		if(preg_match('/^(.[a-zA-Z0-9]+)\/([0-9]+)\/$/',$s, $matchs)){
+		if(preg_match('/^(.[a-zA-Z0-9]+)\/([a-zA-Z0-9]+)\/$/',$s, $matchs)){
 			$func = $matchs[1];
 			$trade_no = $matchs[2];
 			
@@ -71,7 +71,7 @@ class Plugin {
 
 	static public function loadForSubmit($plugin, $trade_no, $ismapi=false){
 		global $DB,$conf,$order,$channel,$ordername,$userrow;
-		if(preg_match('/^(.[a-zA-Z0-9]+)$/',$plugin) && preg_match('/^(.[0-9]+)$/',$trade_no)){
+		if(preg_match('/^(.[a-zA-Z0-9]+)$/',$plugin) && preg_match('/^(.[a-zA-Z0-9]+)$/',$trade_no)){
 			$func = 'submit';
 			if($ismapi) $func = 'mapi';
 			

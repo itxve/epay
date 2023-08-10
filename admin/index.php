@@ -9,6 +9,16 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 <div class="container" style="padding-top:70px;">
 <div class="col-xs-12 col-lg-9 center-block" style="float: none;">
 <div id="browser-notice"></div>
+<div class="panel panel-info">
+    <div class="panel-heading"><h3 class="panel-title">快捷方式</h3></div>
+    <li class="list-group-item">
+        <a href="./ulist.php" class="btn btn-xs btn-info">商户管理</a>&nbsp;
+        <a href="./order.php" class="btn btn-xs btn-success">订单管理</a>&nbsp;
+        <a href="./slist.php" class="btn btn-xs btn-primary">结算管理</a>&nbsp;
+        <a href="./pay_channel.php" class="btn btn-xs btn-danger">支付通道</a>&nbsp;
+        <a href="./ustat.php" class="btn btn-xs btn-warning">交易统计</a>
+    </li>
+</div>
 <div class="row">
     <div class="col-xs-12 col-lg-8">
       <div class="panel panel-info">
