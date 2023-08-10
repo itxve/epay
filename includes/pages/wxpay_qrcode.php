@@ -2,6 +2,7 @@
 // 微信扫码支付页面
 
 if(!defined('IN_PLUGIN'))exit();
+$durl = dwz($code_url);
 ?>
 <!DOCTYPE html>
 <html>
@@ -27,7 +28,7 @@ if(!defined('IN_PLUGIN'))exit();
 </div>
 <div class="mobile-btn" style="display: none;">
     <div class="mobile-tip">操作流程：复制链接→打开微信搜索自己微信名→打开聊天对话框→粘贴链接→发送→点击发送出来的蓝色链接→进入付款页面→完成付款</div>
-    <a class="btn-copy-link" id="copy-btn" data-clipboard-text="<?php echo $code_url?>">点我复制链接</a>
+    <a class="btn-copy-link" id="copy-btn" data-clipboard-text="<?php echo $durl?>">点我复制链接</a>
 </div>
 <div class="detail" id="orderDetail">
 <dl class="detail-ct" style="display: none;">

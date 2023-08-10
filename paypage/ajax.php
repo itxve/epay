@@ -35,7 +35,7 @@ if(!empty($paytype) && isset($_SESSION['paypage_typeid']) && isset($_SESSION['pa
 
 $userrow = $DB->getRow("SELECT `mode`,`ordername`,`channelinfo` FROM `pre_user` WHERE `uid`='{$uid}' LIMIT 1");
 
-$trade_no=date("YmdHis").rand(11111,99999);
+$trade_no=create_ordernum();
 $return_url=$siteurl.'paypage/success.php?trade_no='.$trade_no;
 $domain=getdomain($return_url);
 if(!$DB->exec("INSERT INTO `pre_order` (`trade_no`,`out_trade_no`,`uid`,`tid`,`addtime`,`name`,`money`,`notify_url`,`return_url`,`domain`,`ip`,`buyer`,`status`) VALUES (:trade_no, :out_trade_no, :uid, 3, NOW(), :name, :money, :notify_url, :return_url, :domain, :clientip, :buyer, 0)", [':trade_no'=>$trade_no, ':out_trade_no'=>$trade_no, ':uid'=>$uid, ':name'=>'在线收款', ':money'=>$money, ':notify_url'=>$return_url, ':return_url'=>$return_url, ':domain'=>$domain, ':clientip'=>$clientip, ':buyer'=>$payer]))showerrorjson('创建订单失败，请返回重试！');

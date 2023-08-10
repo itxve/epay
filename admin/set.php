@@ -4,6 +4,7 @@
 **/
 include("../includes/common.php");
 $title='系统设置';
+
 include './head.php';
 if($islogin==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
 ?>
@@ -359,9 +360,15 @@ $(document).ready(function(){
 	  <label class="col-sm-3 control-label">商品屏蔽显示内容</label>
 	  <div class="col-sm-9"><input type="text" name="blockalert" value="<?php echo $conf['blockalert']; ?>" class="form-control"/></div>
 	</div><br/>
+
+      <div class="form-group">
+          <label class="col-sm-3 control-label">订单号前缀</label>
+          <div class="col-sm-9"><input type="text" name="orderprefix" value="<?php echo $conf['orderprefix']; ?>" class="form-control" placeholder="留空默认202301010000xxxxx"/><font color="green">订单号前缀只能是字母或数字且不能超过3位，否则无法付款</font></div>
+      </div><br/>
+
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">商品名称自定义</label>
-	  <div class="col-sm-9"><input type="text" name="ordername" value="<?php echo $conf['ordername']; ?>" class="form-control" placeholder="默认使用原商品名称"/><font color="green">支持变量值：[name]原商品名称，[order]支付订单号，[time]时间戳，[qq]当前商户的联系QQ</font></div>
+	  <div class="col-sm-9"><input type="text" name="ordername" value="<?php echo $conf['ordername']; ?>" class="form-control" placeholder="默认使用原商品名称"/><font color="green">支持变量值：[name]原商品名称，[order]支付订单号，[sorder]商户订单号，[time]时间戳，[qq]当前商户的联系QQ</font></div>
 	</div><br/>
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">扫码页面隐藏商品名称</label>

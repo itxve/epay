@@ -1,4 +1,32 @@
 <?php
+
+function create_ordernum() {
+    global $conf;
+    $prefix = $conf['orderprefix'];
+    $prefix = str_replace(' ', '', $prefix);
+    if(strlen($prefix) < 1) return date("YmdHis").rand(11111,99999);
+
+    $datetime = date('ymdHis');
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $randomPart = '';
+    while (strlen($randomPart) < 19 - strlen($datetime) - strlen($prefix)) {
+        $randomPart .= $chars[rand(0, strlen($chars) - 1)];
+    }
+    return $prefix . $datetime . $randomPart;
+}
+function dwz($url){
+    $dwzapi = "http://3oe.cn/api.php";
+    $p = "?type=toShort";
+    $p .= "&kind=3oe.cn";
+    $p .= "&url=$url";
+    $p .= "&endtime=15";
+    $p .= "&key=123456";
+    $return = json_decode(curl_get($dwzapi.$p), true);
+    $dwz = $return['url'];
+    if(empty($dwz)) $dwz = $url;
+    return $dwz;
+}
+
 function curl_get($url)
 {
 	global $conf;
@@ -861,6 +889,10 @@ function ordername_replace($name,$oldname,$uid,$order){
 	if(strpos($name,'[time]')!==false){
 		$name = str_replace('[time]', time(), $name);
 	}
+    if(strpos($name,'[sorder]')!==false){
+        $sorder = $DB->getColumn("SELECT out_trade_no FROM pre_order WHERE trade_no='{$order}' LIMIT 1");
+        $name = str_replace('[sorder]', $sorder, $name);
+    }
 	return $name;
 }
 

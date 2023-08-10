@@ -95,7 +95,8 @@ if($oldorder && time() - strtotime($oldorder['addtime']) < 864000){
 		$firstGetChannel = false;
 	}
 }else{
-	$trade_no=date("YmdHis").rand(11111,99999);
+//	$trade_no=date("YmdHis").rand(11111,99999);
+    $trade_no=create_ordernum();
 	if(!$DB->exec("INSERT INTO `pre_order` (`trade_no`,`out_trade_no`,`uid`,`addtime`,`name`,`money`,`notify_url`,`return_url`,`param`,`domain`,`ip`,`status`) VALUES (:trade_no, :out_trade_no, :uid, NOW(), :name, :money, :notify_url, :return_url, :param, :domain, :clientip, 0)", [':trade_no'=>$trade_no, ':out_trade_no'=>$out_trade_no, ':uid'=>$pid, ':name'=>$name, ':money'=>$money, ':notify_url'=>$notify_url, ':return_url'=>$return_url, ':domain'=>$domain, ':clientip'=>$clientip, ':param'=>$param]))sysmsg('创建订单失败，请返回重试！');
 }
 

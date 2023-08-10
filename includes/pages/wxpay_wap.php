@@ -2,6 +2,7 @@
 // 微信手机扫码支付页面
 
 if(!defined('IN_PLUGIN'))exit();
+$durl = dwz($code_url);
 ?>
 <html lang="zh-cn">
 <head>
@@ -26,7 +27,7 @@ if(!defined('IN_PLUGIN'))exit();
 			</div>
 			<div class="list-group-item list-group-item-info">或复制以下链接到微信打开：</div>
 			<div class="list-group-item" style="word-wrap: break-word;">
-			<a href="<?php echo $code_url?>"><?php echo $code_url?></a><br/><button id="copy-btn" data-clipboard-text="<?php echo $code_url?>" class="btn btn-info btn-sm">一键复制</button>
+			<a href="<?php echo $durl?>"><?php echo $durl?></a><br/><button id="copy-btn" data-clipboard-text="<?php echo $durl?>" class="btn btn-info btn-sm">一键复制</button>
 			</div>
 			<div class="list-group-item"><small>提示：你可将以上链接发到自己微信的聊天框（在微信顶部搜索框可以搜到自己的微信），点击即可进入支付！</small></div>
 			<div class="list-group-item"><a href="weixin://" class="btn btn-primary">打开微信</a>&nbsp;<a href="#" onclick="checkresult()" class="btn btn-success">检测支付状态</a></div>
