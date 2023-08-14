@@ -21,7 +21,7 @@ foreach($rs as $row){
 	$type_select .= '<option value="'.$row['id'].'">'.$row['showname'].'</option>';
 }
 unset($rs);
-$rolltype = ['顺序轮询','随机轮询'];
+$rolltype = ['顺序轮询', '随机轮询'];
 
 $list = $DB->getAll("SELECT * FROM pre_roll ORDER BY id ASC");
 ?>
