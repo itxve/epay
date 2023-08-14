@@ -42,7 +42,7 @@ if($admin_cdnpublic==1){
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="./">支付管理中心</a>
+        <a class="navbar-brand" href="./"><?php echo $conf['sitename']; ?>管理中心</a>
       </div><!-- /.navbar-header -->
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav navbar-right">
