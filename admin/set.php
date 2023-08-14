@@ -136,11 +136,12 @@ if($mod=='site'){
 	</div><br/>
 	<div class="form-group">
 	  <label class="col-sm-2 control-label">首页显示模式</label>
-	  <div class="col-sm-10"><select class="form-control" name="homepage" default="<?php echo $conf['homepage']?>"><option value="0">默认显示首页</option><option value="1">直接跳转登录页面</option><option value="2">显示其它指定网址</option></select></div>
+	  <div class="col-sm-10"><select class="form-control" name="homepage" default="<?php echo $conf['homepage']?>"><option value="0">默认显示首页</option><option value="1">直接跳转登录页面</option><option value="2">显示其它指定网址[frame]</option><option value="3">跳转其它指定网址</option></select></div>
 	</div><br/>
-	<div class="form-group" id="setform4" style="<?php echo $conf['homepage']!=2?'display:none;':null; ?>">
+      <?php if ($conf['homepage'] == 0 or $conf['homepage'] == 1) $hp = 'display:none;'; ?>
+	<div class="form-group" id="setform4" style="<?php echo $hp; ?>">
 	  <label class="col-sm-2 control-label">显示网址URL</label>
-	  <div class="col-sm-10"><input type="text" name="homepage_url" value="<?php echo $conf['homepage_url']; ?>" class="form-control" placeholder="将以frame方式显示"/></div>
+	  <div class="col-sm-10"><input type="text" name="homepage_url" value="<?php echo $conf['homepage_url']; ?>" class="form-control" placeholder="如 https://www.bilibili.com"/></div>
 	</div><br/>
 	<div class="form-group">
 	  <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
@@ -172,7 +173,7 @@ $("select[name='test_open']").change(function(){
 	}
 });
 $("select[name='homepage']").change(function(){
-	if($(this).val() == 2){
+	if($(this).val() == 2 || $(this).val() == 3){
 		$("#setform4").show();
 	}else{
 		$("#setform4").hide();

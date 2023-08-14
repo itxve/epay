@@ -22,6 +22,8 @@ if($mod=='index'){
         exit;
     }elseif($conf['homepage']==1){
         exit("<script language='javascript'>window.location.href='/user/';</script>");
+    }elseif($conf['homepage']==3){
+        exit("<script language='javascript'>window.location.href='".$conf['homepage_url']."';</script>");
     }
 }
 
