@@ -557,6 +557,10 @@ $(document).ready(function(){
 	  <label class="col-sm-3 control-label">银行卡结算开关</label>
 	  <div class="col-sm-9"><select class="form-control" name="settle_bank" default="<?php echo $conf['settle_bank']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
 	</div><br/>
+      <div class="form-group">
+          <label class="col-sm-3 control-label">USDT结算开关</label>
+          <div class="col-sm-9"><select class="form-control" name="settle_usdt" default="<?php echo $conf['settle_usdt']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+      </div><br/>
 	<div class="form-group">
 	  <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
 	 </div>

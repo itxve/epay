@@ -12,8 +12,10 @@ function display_type($type){
 		return '微信';
 	elseif($type==3)
 		return 'QQ钱包';
-	elseif($type==4)
-		return '银行卡';
+    elseif($type==4)
+        return '银行卡';
+    elseif($type==5)
+        return 'USDT';
 	else
 		return 1;
 }

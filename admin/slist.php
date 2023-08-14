@@ -86,7 +86,9 @@ $(document).ready(function(){
 						typename='<img src="/assets/icon/qqpay.ico" width="16" onerror="this.style.display=\'none\'">QQ钱包';
 					}else if(value == '4'){
 						typename='<img src="/assets/icon/bank.ico" width="16" onerror="this.style.display=\'none\'">银行卡';
-					}
+					}else if(value == '5'){
+                        typename='<img src="/assets/icon/usdt.ico" width="16" onerror="this.style.display=\'none\'">USDT';
+                    }
 					if(row.auto!=1) typename+='<small>[手动]</small>'
 					return typename;
 				}
