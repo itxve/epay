@@ -51,8 +51,7 @@ class epay_plugin
 			"notify_url"	=> $conf['localurl'].'pay/notify/'.TRADE_NO.'/',
 			"return_url"	=> $siteurl.'pay/return/'.TRADE_NO.'/',
 			"out_trade_no"	=> TRADE_NO,
-//			"name"	=> $order['name'],
-            "name"	=> $order['out_trade_no'],
+            "name"	=> $ordername,
 			"money"	=> (float)$order['realmoney']
 		);
 		//建立请求
@@ -108,8 +107,7 @@ class epay_plugin
 			"notify_url"	=> $conf['localurl'].'pay/notify/'.TRADE_NO.'/',
 			"return_url"	=> $siteurl.'pay/return/'.TRADE_NO.'/',
 			"out_trade_no"	=> TRADE_NO,
-//			"name"	=> $order['name'],
-            "name"	=> $order['out_trade_no'],
+            "name"	=> $ordername,
 			"money"	=> (float)$order['realmoney']
 		);
 		//建立请求
