@@ -5,6 +5,10 @@
 ```
 git clone https://github.com/mrlihx/epay.git ./
 ```
+国内服务器用
+```
+git clone https://ghproxy.com/https://github.com/mrlihx/epay.git ./
+```
 更新项目
 ```
 git pull
