@@ -98,6 +98,7 @@ INSERT INTO `pre_type` VALUES (3, 'qqpay', 0, 'QQ钱包', 1);
 INSERT INTO `pre_type` VALUES (4, 'bank', 0, '网银支付', 0);
 INSERT INTO `pre_type` VALUES (5, 'jdpay', 0, '京东支付', 0);
 INSERT INTO `pre_type` VALUES (6, 'paypal', 0, 'PayPal', 0);
+INSERT INTO `pre_type` VALUES (7, 'usdt', 0, 'USDT支付', 0);
 
 DROP TABLE IF EXISTS `pre_plugin`;
 CREATE TABLE `pre_plugin` (
