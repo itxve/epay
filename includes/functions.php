@@ -20,7 +20,7 @@ function dwz($url){
     $p .= "&kind=3oe.cn";
     $p .= "&url=$url";
     $p .= "&endtime=15";
-    $p .= "&key=123456";
+    $p .= "&key=qq199466";
     $return = json_decode(curl_get($dwzapi.$p), true);
     $dwz = $return['url'];
     if(empty($dwz)) $dwz = $url;
