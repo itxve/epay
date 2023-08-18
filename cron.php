@@ -256,6 +256,9 @@ elseif($_GET['do']=='clean'){
     // 清理订单记录
     $d = $DB->exec("delete from `pay_order` where addtime<'".$days."'");
     if ($d) echo '删除订单记录成功！ <br/>';
+    // 清理登录日志
+    $d = $DB->exec("delete from `pay_log` where date<'".$days."'");
+    if ($d) echo '删除登录日志成功！ <br/>';
 
     $DB->exec("OPTIMIZE TABLE `pre_record`");
     $DB->exec("OPTIMIZE TABLE `pre_settle`");
