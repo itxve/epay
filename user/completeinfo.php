@@ -30,7 +30,8 @@ include './head.php';
 					<label class="col-sm-2 control-label">结算方式</label>
 					<div class="col-sm-9">
 						<select class="form-control" name="stype" default="<?php echo $userrow['settle_id']?>">
-						<?php if($conf['settle_alipay']){?><option value="1" input="支付宝账号">支付宝结算</option>
+                        <?php if($conf['settle_usdt']){?><option value="5" input="USDT地址">USDT结算</option>
+						<?php }if($conf['settle_alipay']){?><option value="1" input="支付宝账号">支付宝结算</option>
 						<?php }if($conf['settle_wxpay']){?><option value="2" input="<?php echo $conf['transfer_wxpay']?'微信OpenId':'微信号';?>">微信结算</option>
 						<?php }if($conf['settle_qqpay']){?><option value="3" input="ＱＱ号码">QQ钱包结算</option>
 						<?php }if($conf['settle_bank']){?><option value="4" input="银行卡号">银行卡结算</option>
