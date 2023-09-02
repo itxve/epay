@@ -62,8 +62,14 @@ $list=$DB->getAll("SELECT * FROM pre_settle WHERE uid={$uid} order by id desc li
           <thead><tr><th>ID</th><th>结算方式</th><th>结算账号</th><th>结算金额</th><th>实际到账</th><th>结算时间</th><th>状态</th></tr></thead>
           <tbody>
 <?php
+$i = 0;
+for ($id = count($list); $id >= 1; $id--) {
+    $ids[] = $id;
+}
 foreach($list as $res){
-	echo '<tr><td>'.$res['id'].'</td><td>'.display_type($res['type']).($res['auto']!=1?'<small>[手动]</small>':null).'</td><td>'.$res['account'].'</td><td>￥ <b>'.$res['money'].'</b></td><td>￥ <b>'.$res['realmoney'].'</b></td><td>'.$res['addtime'].'</td><td>'.display_status($res['status'],$res['id']).'</td></tr>';
+    var_dump($res['auto']);
+	echo '<tr><td>'.$ids[$i].'</td><td>'.display_type($res['type']).($res['auto']!=1?'<small>[手动]</small>':null).'</td><td>'.$res['account'].'</td><td>￥ <b>'.$res['money'].'</b></td><td>￥ <b>'.$res['realmoney'].'</b></td><td>'.$res['addtime'].'</td><td>'.display_status($res['status'],$res['id']).'</td></tr>';
+    $i++;
 }
 ?>
 		  </tbody>

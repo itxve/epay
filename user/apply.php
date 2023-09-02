@@ -21,6 +21,8 @@ function display_type($type){
 		return 'QQ钱包';
 	elseif($type==4)
 		return '银行卡';
+    elseif($type==5)
+        return 'USDT';
 	else
 		return 1;
 }
@@ -79,7 +81,7 @@ if(isset($_GET['act']) && $_GET['act']=='do'){
 		}else{
 			$realmoney=$money;
 		}
-		if($DB->exec("INSERT INTO `pre_settle` (`uid`, `type`, `username`, `account`, `money`, `realmoney`, `addtime`, `status`) VALUES ('{$uid}', '{$userrow['settle_id']}', '{$userrow['username']}', '{$userrow['account']}', '{$money}', '{$realmoney}', '{$date}', '0')")){
+		if($DB->exec("INSERT INTO `pre_settle` (`uid`, `auto`, `type`, `username`, `account`, `money`, `realmoney`, `addtime`, `status`) VALUES ('{$uid}', 0,'{$userrow['settle_id']}', '{$userrow['username']}', '{$userrow['account']}', '{$money}', '{$realmoney}', '{$date}', '0')")){
 			$settleid=$DB->lastInsertId();
 			changeUserMoney($uid, $money, false, '手动提现');
 			if($conf['settle_type']==2){
