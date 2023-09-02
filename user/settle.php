@@ -67,7 +67,6 @@ for ($id = count($list); $id >= 1; $id--) {
     $ids[] = $id;
 }
 foreach($list as $res){
-    var_dump($res['auto']);
 	echo '<tr><td>'.$ids[$i].'</td><td>'.display_type($res['type']).($res['auto']!=1?'<small>[手动]</small>':null).'</td><td>'.$res['account'].'</td><td>￥ <b>'.$res['money'].'</b></td><td>￥ <b>'.$res['realmoney'].'</b></td><td>'.$res['addtime'].'</td><td>'.display_status($res['status'],$res['id']).'</td></tr>';
     $i++;
 }
