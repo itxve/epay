@@ -46,7 +46,7 @@ $_SESSION['csrf_token'] = $csrf_token;
 <?php if(!$conf['close_keylogin']){?>
 <ul class="nav nav-tabs">
     <li style="width: 50%;" align="center" class="<?php echo $_GET['m']!='key'?'active':null;?>">
-  <a href="./login.php">密码登录(New)</a>
+  <a href="./login.php">账号登录</a>
 </li>
     <li style="width: 50%;" align="center" class="<?php echo $_GET['m']=='key'?'active':null;?>">
   <a href="./login.php?m=key">密钥登录</a>
