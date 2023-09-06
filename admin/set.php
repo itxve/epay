@@ -364,9 +364,15 @@ $(document).ready(function(){
 	  <label class="col-sm-3 control-label">商品屏蔽显示内容</label>
 	  <div class="col-sm-9"><input type="text" name="blockalert" value="<?php echo $conf['blockalert']; ?>" class="form-control"/></div>
 	</div><br/>
+
+      <div class="form-group">
+          <label class="col-sm-3 control-label">订单号前缀</label>
+          <div class="col-sm-9"><input type="text" name="orderprefix" value="<?php echo $conf['orderprefix']; ?>" class="form-control" placeholder="留空默认202301010000xxxxx"/><font color="green">订单号前缀只能是字母或数字且不能超过3位，否则无法付款</font></div>
+      </div><br/>
+
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">商品名称自定义</label>
-	  <div class="col-sm-9"><input type="text" name="ordername" value="<?php echo $conf['ordername']; ?>" class="form-control" placeholder="默认使用原商品名称"/><font color="green">支持变量值：[name]原商品名称，[order]支付订单号，[time]时间戳，[qq]当前商户的联系QQ，[phone]当前商户的手机号</font></div>
+	  <div class="col-sm-9"><input type="text" name="ordername" value="<?php echo $conf['ordername']; ?>" class="form-control" placeholder="默认使用原商品名称"/><font color="green">支持变量值：[name]原商品名称，[order]支付订单号，[sorder]商户订单号，[time]时间戳，[qq]当前商户的联系QQ，[phone]当前商户的手机号</font></div>
 	</div><br/>
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">扫码页面隐藏商品名称</label>
@@ -575,6 +581,12 @@ $("select[name='pay_verify']").change(function(){
 	  <label class="col-sm-3 control-label">银行卡结算开关</label>
 	  <div class="col-sm-9"><select class="form-control" name="settle_bank" default="<?php echo $conf['settle_bank']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
 	</div><br/>
+
+      <div class="form-group">
+          <label class="col-sm-3 control-label">USDT结算开关</label>
+          <div class="col-sm-9"><select class="form-control" name="settle_usdt" default="<?php echo $conf['settle_usdt']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+      </div><br/>
+
 	<div class="form-group">
 	  <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
 	 </div>
@@ -1083,8 +1095,14 @@ if($errmsg){
 <br/>
 <p>订单异步通知重试任务<br/>（如果有订单出现通知失败的，可以通过此条任务自动重新通知，通知重试时间：1分钟，3分钟，20分钟，1小时，2小时）</p>
 <li class="list-group-item"><?php echo $siteurl?>cron.php?do=notify&key=<?php echo $conf['cronkey']; ?></li>
+<?php //if($DB->getColumn("SELECT count(*) from pre_psreceiver WHERE status=1")>0){ ?>
+<br/>
+
+<p>数据清理任务（每天0点一次或每小时一次）<br/> days=15 代表清理15天前的资金明细、结算记录、订单记录</p>
+<li class="list-group-item"><?php echo $siteurl?>cron.php?do=clean&days=15&key=<?php echo $conf['cronkey']; ?></li>
 <?php if($DB->getColumn("SELECT count(*) from pre_psreceiver WHERE status=1")>0){ ?>
 <br/>
+
 <p>订单分账任务</p>
 <li class="list-group-item"><?php echo $siteurl?>cron.php?do=profitsharing&key=<?php echo $conf['cronkey']; ?></li><?php }?>
 <?php if($conf['auto_check_sucrate']==1 || $conf['auto_check_channel']==1){ ?>
