@@ -104,15 +104,17 @@ class jinyihui_plugin
 		$param['sign'] = self::make_sign($param, $channel['appkey']);
 		$param['sign_type'] = 'MD5';
 
-		$data = get_curl($apiurl, http_build_query($param));
+		return \lib\Payment::lockPayData(TRADE_NO, function() use($apiurl, $param) {
+			$data = get_curl($apiurl, http_build_query($param));
 
-		$result = json_decode($data, true);
+			$result = json_decode($data, true);
 
-		if(isset($result['code']) && $result['code']==1){
-			return $result['qrcode'];
-		}else{
-			throw new Exception($result['msg']?$result['msg']:'返回数据解析失败');
-		}
+			if(isset($result['code']) && $result['code']==1){
+				return $result['qrcode'];
+			}else{
+				throw new Exception($result['msg']?$result['msg']:'返回数据解析失败');
+			}
+		});
 	}
 
 	//QQ扫码支付

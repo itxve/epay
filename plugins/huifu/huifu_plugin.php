@@ -163,6 +163,14 @@ class huifu_plugin
 	static public function wxjspay(){
 		global $siteurl, $channel, $order, $ordername, $conf;
 
+		if(!$channel['appwxmp']){
+			try{
+				$jump_url = self::hostingOrder();
+			}catch(Exception $ex){
+				return ['type'=>'error','msg'=>'微信支付下单失败！'.$ex->getMessage()];
+			}
+			return ['type'=>'jump','url'=>$jump_url];
+		}
 		//①、获取用户openid
 		$wxinfo = \lib\Channel::getWeixin($channel['appwxmp']);
 		if(!$wxinfo) return ['type'=>'error','msg'=>'支付通道绑定的微信公众号不存在'];
@@ -272,6 +280,43 @@ class huifu_plugin
 
 			if(isset($result['resp_code']) && $result['resp_code']=='00000100') {
 				return $result['miniapp_data']['scheme_code'];
+			}elseif(isset($result['resp_desc'])){
+				throw new Exception($result['resp_desc'].($result['bank_message']?' '.$result['bank_message']:''));
+			}else{
+				throw new Exception('返回数据解析失败');
+			}
+		});
+	}
+
+	//H5、PC预下单
+	static private function hostingOrder(){
+		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
+
+		require_once PAY_ROOT."inc/HuifuClient.php";
+		$config_info = [
+			'sys_id' =>  $channel['appid'],
+			'product_id' => $channel['appurl'],
+			'merchant_private_key' => $channel['appsecret'],
+			'huifu_public_key' => $channel['appkey'],
+		];
+		$client = new HuifuClient($config_info);
+
+		$param = [
+			'req_date' => substr(TRADE_NO,0,8),
+			'req_seq_id' => TRADE_NO,
+			'huifu_id' => $channel['appmchid']?$channel['appmchid']:$channel['appid'],
+			'trans_amt' => $order['realmoney'],
+			'goods_desc' => $ordername,
+			'pre_order_type' => '1',
+			'hosting_data' => json_encode(['project_title'=>$conf['sitename'], 'project_id'=>'', 'callback_url'=>$siteurl. 'pay/return/' . TRADE_NO . '/']),
+			'notify_url' => $conf['localurl'] . 'pay/notify/' . TRADE_NO . '/',
+		];
+
+		return \lib\Payment::lockPayData(TRADE_NO, function() use($client, $param) {
+			$result = $client->requestApi('/v2/trade/hosting/payment/preorder', $param);
+
+			if(isset($result['resp_code']) && $result['resp_code']=='00000100') {
+				return $result['jump_url'];
 			}elseif(isset($result['resp_desc'])){
 				throw new Exception($result['resp_desc'].($result['bank_message']?' '.$result['bank_message']:''));
 			}else{

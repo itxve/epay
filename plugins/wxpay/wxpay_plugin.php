@@ -8,6 +8,7 @@ class wxpay_plugin
 		'author'      => '微信', //支付插件作者
 		'link'        => 'https://pay.weixin.qq.com/', //支付插件作者链接
 		'types'       => ['wxpay'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'transtypes'  => ['wxpay'], //支付插件支持的转账方式，可选的有alipay,qqpay,wxpay,bank
 		'inputs' => [ //支付插件要求传入的参数以及参数显示名称，可选的有appid,appkey,appsecret,appurl,appmchid
 			'appid' => [
 				'name' => '公众号或小程序APPID',
@@ -49,6 +50,8 @@ class wxpay_plugin
 				return ['type'=>'jump','url'=>$urlpre.'pay/jspay/'.TRADE_NO.'/?d=1'];
 			}elseif(in_array('4',$channel['apptype'])){
 				return ['type'=>'jump','url'=>$urlpre.'pay/wap/'.TRADE_NO.'/'];
+			}elseif(in_array('1',$channel['apptype']) && $conf['wework_payopen'] == 1){
+				return ['type'=>'jump','url'=>'/pay/qrcode/'.TRADE_NO.'/'];
 			}else{
 				if(!$submit2){
 					return ['type'=>'jump','url'=>'/pay/submit/'.TRADE_NO.'/'];
@@ -339,5 +342,43 @@ class wxpay_plugin
 			$result = ['code'=>-1, 'msg'=>$e->getMessage()];
 		}
 		return $result;
+	}
+
+	//转账
+	static public function transfer($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+
+		$money = strval($bizParam['money'] * 100);
+		$wechatpay_config = require(PLUGIN_ROOT.'wxpay/inc/config.php');
+		try{
+			$client = new \WeChatPay\TransferService($wechatpay_config);
+			$result = $client->transfer($bizParam['out_biz_no'], $bizParam['payee_account'], $bizParam['payee_real_name'], $money, $bizParam['transfer_desc']);
+			return ['code'=>0, 'status'=>1, 'orderid'=>$result['payment_no'], 'paydate'=>$result['payment_time']];
+		}catch(\WeChatPay\WeChatPayException $e){
+			$result = $e->getResponse();
+			return ['code'=>-1, 'errcode'=>$result['err_code'], 'msg'=>$e->getMessage()];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
+	}
+
+	//转账查询
+	static public function transfer_query($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+		$wechatpay_config = require(PLUGIN_ROOT.'wxpay/inc/config.php');
+		try{
+			$client = new \WeChatPay\TransferService($wechatpay_config);
+			$result = $client->transferQuery($bizParam['out_biz_no']);
+			if($result['status'] == 'SUCCESS'){
+				$status = 1;
+			}elseif($result['status'] == 'FAILED'){
+				$status = 2;
+			}else{
+				$status = 0;
+			}
+			return ['code'=>0, 'status'=>$status, 'amount'=>round($result['payment_amount']/100, 2), 'paydate'=>$result['payment_time'], 'errmsg'=>$result['reason']];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
 	}
 }

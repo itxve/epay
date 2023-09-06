@@ -61,10 +61,7 @@ $(document).ready(function(){
 			},
 			{
 				field: 'content',
-				title: '黑名单内容',
-				formatter: function(value, row, index) {
-					return '<a href="http://'+value.replace('*.','www.')+'/" target="_blank" rel="noopener noreferrer">'+value+'</a>';
-				}
+				title: '黑名单内容'
 			},
 			{
 				field: 'addtime',

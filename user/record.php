@@ -21,7 +21,7 @@ include './head.php';
 <?php }?>
 	<div class="panel panel-default">
 		<div class="panel-heading font-bold">
-			<h3 class="panel-title">资金明细<a href="javascript:searchClear()" class="btn btn-default btn-xs pull-right" title="刷新明细列表"><i class="fa fa-refresh"></i></a></h3>
+			<h3 class="panel-title">资金明细</h3>
 		</div>
 	    <form onsubmit="return searchSubmit()" method="GET" class="form-inline" id="searchToolbar">
 	      <div class="form-group">
@@ -36,6 +36,7 @@ include './head.php';
 		  </div>
 		  <div class="form-group">
 			<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i> 搜索</button>
+			<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-refresh"></i> 重置</a>
 		  </div>
 		</form>
       <table id="listTable">

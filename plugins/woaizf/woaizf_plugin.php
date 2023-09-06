@@ -8,6 +8,7 @@ class woaizf_plugin
 		'author'      => '我爱支付', //支付插件作者
 		'link'        => 'https://www.52zhifu.com/', //支付插件作者链接
 		'types'       => ['alipay','wxpay','qqpay','bank'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'transtypes'  => ['alipay','wxpay'], //支付插件支持的转账方式，可选的有alipay,qqpay,wxpay,bank
 		'inputs' => [ //支付插件要求传入的参数以及参数显示名称，可选的有appid,appkey,appsecret,appurl,appmchid
 			'appid' => [
 				'name' => '应用AppID',
@@ -292,11 +293,10 @@ class woaizf_plugin
 	}
 
 	//转账
-	static public function transfer($channel, $type, $out_trade_no, $payee_account, $payee_real_name, $money){
-		global $conf;
-		if(empty($type) || empty($out_trade_no) || empty($payee_account))exit();
+	static public function transfer($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
 
-		if($type == 'wxpay') $type = 'wechat';
+		if($bizParam['type'] == 'wxpay') $bizParam['type'] = 'wechat';
 		
 		if(!empty($channel['appurl'])) { 
 			$apiurl = $channel['appurl'].'api/trans/confrim';
@@ -305,11 +305,11 @@ class woaizf_plugin
 		}
 		$param = [
 			'appid' => $channel['appid'],
-			'type' => $type,
-			'account' => $payee_account,
-			'name' => $payee_real_name,
-			'memo' => $conf['transfer_desc'],
-			'money' => $money,
+			'type' => $bizParam['type'],
+			'account' => $bizParam['payee_account'],
+			'name' => $bizParam['payee_real_name'],
+			'memo' => $bizParam['transfer_desc'],
+			'money' => $bizParam['money'],
 			'timestamp' => ''.time()
 		];
 		$param['sign'] = self::make_sign($param, $channel['appkey']);
@@ -317,7 +317,32 @@ class woaizf_plugin
 		$result = json_decode($data, true);
 
 		if(isset($result['code']) && $result['code']==200){
-			return ['code'=>0];
+			return ['code'=>0, 'status'=>$result['data']['status'], 'orderid'=>$result['data']['trade_no'], 'paydate'=>date('Y-m-d H:i:s')];
+		}else{
+			return ['code'=>-1, 'msg'=>$result['message']?$result['message']:'接口返回错误'];
+		}
+	}
+
+	//转账查询
+	static public function transfer_query($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+
+		if(!empty($channel['appurl'])) { 
+			$apiurl = $channel['appurl'].'api/trans/query';
+		}else{
+			$apiurl = 'https://payapi.52zhifu.com/api/trans/query';
+		}
+		$param = [
+			'appid' => $channel['appid'],
+			'trade_no' => $bizParam['orderid'],
+			'timestamp' => ''.time()
+		];
+		$param['sign'] = self::make_sign($param, $channel['appkey']);
+		$data = get_curl($apiurl, http_build_query($param));
+		$result = json_decode($data, true);
+
+		if(isset($result['code']) && $result['code']==200){
+			return ['code'=>0, 'status'=>$result['data']['status'], 'amount'=>$result['data']['money'], 'paydate'=>$result['data']['trade_time'], 'errmsg'=>$result['data']['status_text']];
 		}else{
 			return ['code'=>-1, 'msg'=>$result['message']?$result['message']:'接口返回错误'];
 		}

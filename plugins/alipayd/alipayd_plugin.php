@@ -35,6 +35,7 @@ class alipayd_plugin
 			'2' => '手机网站支付',
 			'3' => '当面付扫码',
 			'4' => 'JS支付',
+			'5' => '预授权支付',
 		],
 		'note' => '<p>需要先申请互联网平台直付通才能使用！</p><p>如果使用公钥证书模式，需将<font color="red">应用公钥证书、支付宝公钥证书、支付宝根证书</font>3个crt文件放置于<font color="red">/plugins/alipayd/cert/</font>文件夹（或<font color="red">/plugins/alipayd/cert/应用APPID/</font>文件夹）</p>', //支付密钥填写说明
 		'bindwxmp' => false, //是否支持绑定微信公众号
@@ -50,7 +51,8 @@ class alipayd_plugin
 		}
 		elseif($isMobile && (in_array('3',$channel['apptype'])||in_array('4',$channel['apptype'])) && !in_array('2',$channel['apptype']) || !$isMobile && !in_array('1',$channel['apptype'])){
 			return ['type'=>'jump','url'=>'/pay/qrcode/'.TRADE_NO.'/'];
-		}else{
+		}
+		else{
 		
 		if(strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger')!==false){
 			if(!$submit2){
@@ -82,7 +84,7 @@ class alipayd_plugin
 			}
 			
 			return ['type'=>'html','data'=>$html];
-		}else{
+		}elseif(in_array('1',$channel['apptype'])){
 			if($conf['alipay_paymode'] == 1){
 				return ['type'=>'jump','url'=>'/pay/qrcodepc/'.TRADE_NO.'/'];
 			}
@@ -104,6 +106,8 @@ class alipayd_plugin
 			}
 
 			return ['type'=>'html','data'=>$html];
+		}elseif(in_array('5',$channel['apptype'])){
+			return ['type'=>'jump','url'=>'/pay/preauth/'.TRADE_NO.'/?d=1'];
 		}
 		}
 	}
@@ -166,8 +170,10 @@ class alipayd_plugin
 		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
 		if(!in_array('3',$channel['apptype']) && in_array('2',$channel['apptype'])){
 			$code_url = $siteurl.'pay/submit/'.TRADE_NO.'/';
-		}elseif(!in_array('3',$channel['apptype']) && !in_array('2',$channel['apptype']) && in_array('4',$channel['apptype'])){
+		}elseif(!in_array('3',$channel['apptype']) && in_array('4',$channel['apptype'])){
 			$code_url = $siteurl.'pay/jspay/'.TRADE_NO.'/';
+		}elseif(!in_array('3',$channel['apptype']) && in_array('5',$channel['apptype'])){
+			$code_url = $siteurl.'pay/preauth/'.TRADE_NO.'/';
 		}else{
 		
 		$alipay_config = require(PAY_ROOT.'inc/config.php');
@@ -193,6 +199,36 @@ class alipayd_plugin
 		}else{
 			return ['type'=>'qrcode','page'=>'alipay_qrcode','url'=>$code_url];
 		}
+	}
+
+	//预授权支付
+	static public function preauth(){
+		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
+
+		$alipay_config = require(PAY_ROOT.'inc/config.php');
+		$alipay_config['notify_url'] = $conf['localurl'].'pay/preauthnotify/'.TRADE_NO.'/';
+		$bizContent = [
+			'out_order_no' => TRADE_NO,
+			'out_request_no' => TRADE_NO,
+			'order_title' => $ordername,
+			'amount' => $order['realmoney'],
+			'product_code' => 'PREAUTH_PAY'
+		];
+		$bizContent['business_params'] = ['mc_create_trade_ip' => $clientip];
+		try{
+			$aop = new \Alipay\AlipayTradeService($alipay_config);
+			$aop->directPayParams($bizContent);
+			$result = $aop->preAuthFreeze($bizContent);
+		}catch(Exception $e){
+			return ['type'=>'error','msg'=>'支付宝下单失败！'.$e->getMessage()];
+		}
+		if($_GET['d']=='1'){
+			$redirect_url='data.backurl';
+		}else{
+			$redirect_url='\'/pay/ok/'.TRADE_NO.'/\'';
+		}
+		$code_url = 'alipays://platformapi/startApp?appId=20000125&orderSuffix='.urlencode($result).'#Intent;scheme=alipays;package=com.eg.android.AlipayGphone;end';
+		return ['type'=>'page','page'=>'alipay_h5','data'=>['code_url'=>$code_url, 'redirect_url'=>$redirect_url]];
 	}
 
 	//JS支付
@@ -358,6 +394,56 @@ class alipayd_plugin
 		else {
 			//验证失败
 			return ['type'=>'error','msg'=>'支付宝返回验证失败'];
+		}
+	}
+
+	//预授权支付回调
+	static public function preauthnotify(){
+		global $channel, $order, $conf, $ordername, $clientip;
+
+		$alipay_config = require(PAY_ROOT.'inc/config.php');
+		$alipay_config['notify_url'] = $conf['localurl'].'pay/notify/'.TRADE_NO.'/';
+		$aop = new \Alipay\AlipayService($alipay_config);
+
+		$verify_result = $aop->check($_POST);
+
+		if($verify_result) {//验证成功
+			//商户订单号
+			$out_trade_no = $_POST['out_order_no'];
+
+			//资金授权订单号
+			$auth_no = $_POST['auth_no'];
+
+			$buyer_id = $result['payer_user_id'];
+			
+			if($out_trade_no == TRADE_NO){
+				$bizContent = [
+					'out_trade_no' => TRADE_NO,
+					'total_amount' => $order['realmoney'],
+					'subject' => $ordername,
+					'product_code' => 'PREAUTH_PAY',
+					'auth_no' => $auth_no,
+					'auth_confirm_mode' => 'COMPLETE'
+				];
+				try{
+					$aop = new \Alipay\AlipayTradeService($alipay_config);
+					$result = $aop->scanPay($bizContent);
+				}catch(Exception $e){
+					\lib\Payment::updateOrder(TRADE_NO, $auth_no, $buyer_id, 4);
+					return ['type'=>'html','data'=>'success'];
+					//return ['type'=>'error','msg'=>'支付宝下单失败！'.$e->getMessage()];
+				}
+				$trade_no = $result['trade_no'];
+				$buyer_id = $result['buyer_user_id'];
+				$total_amount = $result['total_amount'];
+
+				processNotify($order, $trade_no, $buyer_id);
+			}
+			return ['type'=>'html','data'=>'success'];
+		}
+		else {
+			//验证失败
+			return ['type'=>'html','data'=>'fail'];
 		}
 	}
 

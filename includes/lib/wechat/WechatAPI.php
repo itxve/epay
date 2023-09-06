@@ -28,8 +28,9 @@ class WechatAPI
             }
             $appid = $row['appid'];
             $secret = $row['appsecret'];
-            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$appid."&secret=".$secret;
-            $output = get_curl($url);
+            $url = "https://api.weixin.qq.com/cgi-bin/stable_token";
+            $post = json_encode(['grant_type'=>'client_credential', 'appid'=>$appid, 'secret'=>$secret]);
+            $output = get_curl($url, $post);
 		    $res = json_decode($output, true);
             if (isset($res['access_token'])) {
                 $this->accessToken = $res['access_token'];
@@ -63,6 +64,25 @@ class WechatAPI
             return $res['openlink'];
         }else{
             throw new Exception('urlscheme生成失败：'.$res['errmsg']);
+        }
+    }
+
+    //发送微信公众号模板消息
+    public function sendTemplateMessage($openid, $template_id, $jumpurl, $data){
+        $access_token = $this->getAccessToken();
+        $url = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_token='.$access_token;
+        $post = [
+            'touser' => $openid,
+            'template_id' => $template_id,
+            'url' => $jumpurl,
+            'data' => $data
+        ];
+        $response = get_curl($url, json_encode($post));
+        $res = json_decode($response, true);
+        if ($res && $res['errcode'] == 0) {
+            return true;
+        }else{
+            throw new Exception('模板消息发送失败：'.$res['errmsg']);
         }
     }
 }

@@ -6,6 +6,13 @@ include("../includes/common.php");
 $title='支付通道';
 include './head.php';
 if($islogin==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
+
+$type_select = '<option value="0">所有支付方式</option>';
+$rs = $DB->getAll("SELECT * FROM pre_type ORDER BY id ASC");
+foreach($rs as $row){
+	$type_select .= '<option value="'.$row['id'].'">'.$row['showname'].'</option>';
+}
+unset($rs);
 ?>
 <style>
 .form-inline .form-control {
@@ -19,29 +26,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
     vertical-align: middle;
 }
 </style>
-  <div class="container" style="padding-top:70px;">
-    <div class="col-md-11 center-block" style="float: none;">
-<?php
 
-$paytype = [];
-$paytypes = [];
-$type_select = '';
-$type_button = '';
-$rs = $DB->getAll("SELECT * FROM pre_type ORDER BY id ASC");
-foreach($rs as $row){
-	$paytype[$row['id']] = $row['showname'];
-	$paytypes[$row['id']] = $row['name'];
-	$type_select .= '<option value="'.$row['id'].'">'.$row['showname'].'</option>';
-	$type_button .= '<li><a href="?type='.$row['id'].'">'.$row['showname'].'</a></li>';
-}
-unset($rs);
-
-if($_GET['type'] && array_key_exists($_GET['type'],$paytype)){
-	$sql = " WHERE type=".$_GET['type'];
-	$titles = $paytype[$_GET['type']].'共有';
-}
-$list = $DB->getAll("SELECT * FROM pre_channel{$sql} ORDER BY id ASC");
-?>
 <div class="modal" id="modal-store" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
 	<div class="modal-dialog">
 		<div class="modal-content animated flipInX">
@@ -123,31 +108,124 @@ $list = $DB->getAll("SELECT * FROM pre_channel{$sql} ORDER BY id ASC");
 	</div>
 </div>
 
-<div class="panel panel-info">
-   <div class="panel-heading"><h3 class="panel-title"><?php echo $titles?$titles:'系统共有'?> <b><?php echo count($list);?></b> 个支付通道&nbsp;
-     <div class="btn-group" role="group"><button type="button" class="btn btn-primary dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">过滤 <span class="caret"></span></button><ul class="dropdown-menu"><li><a href="?">全部支付方式</a></li><li role="separator" class="divider"></li><?php echo $type_button?></ul></div>
-     <span class="pull-right">
-	   <a href="javascript:addframe()" class="btn btn-default btn-xs"><i class="fa fa-plus"></i> 新增</a>
-      </span>
-   </h3></div>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead><tr><th>ID</th><th>显示名称</th><th>通道模式</th><th>分成比例</th><th>支付方式</th><th>支付插件</th><th>今日收款</th><th>昨日收款</th><th>状态</th><th>操作</th></tr></thead>
-          <tbody>
-<?php
-foreach($list as $res)
-{
-echo '<tr><td><b>'.$res['id'].'</b></td><td>'.$res['name'].'</td><td>'.($res['mode']==1?'商户直清':'平台代收').'</td><td>'.$res['rate'].'</td><td><img src="/assets/icon/'.$paytypes[$res['type']].'.ico" width="16" onerror="this.style.display=\'none\'"> '.$paytype[$res['type']].'</td><td><span onclick="showPlugin(\''.$res['plugin'].'\')" title="查看支付插件详情">'.$res['plugin'].'</span></td><td><a onclick="getAll(0,'.$res['id'].',this)" title="点此获取最新数据">[刷新]</a></td><td><a onclick="getAll(1,'.$res['id'].',this)" title="点此获取最新数据">[刷新]</a></td><td>'.($res['status']==1?'<a class="btn btn-xs btn-success" onclick="setStatus('.$res['id'].',0)">已开启</a>':'<a class="btn btn-xs btn-warning" onclick="setStatus('.$res['id'].',1)">已关闭</a>').'</td><td><a class="btn btn-xs btn-primary" onclick="editInfo('.$res['id'].')">配置密钥</a>&nbsp;<a class="btn btn-xs btn-info" onclick="editframe('.$res['id'].')">编辑</a>&nbsp;<a class="btn btn-xs btn-danger" onclick="delItem('.$res['id'].')">删除</a>&nbsp;<a href="./order.php?channel='.$res['id'].'" target="_blank" class="btn btn-xs btn-default">订单</a>&nbsp;<a onclick="testpay('.$res['id'].')" class="btn btn-xs btn-default">测试</a></td></tr>';
-}
-?>
-          </tbody>
-        </table>
-      </div>
-	</div>
+  <div class="container" style="padding-top:70px;">
+    <div class="col-md-12 center-block" style="float: none;">
+<form onsubmit="return searchSubmit()" method="GET" class="form-inline" id="searchToolbar">
+<input type="hidden" class="form-control" name="batch">
+  <div class="form-group">
+	<label>搜索</label>
+    <input type="text" class="form-control" name="kw" placeholder="通道ID/名称">
+  </div>
+  <div class="form-group">
+    <input type="text" class="form-control" name="plugin" style="width: 100px;" placeholder="支付插件" value="">
+  </div>
+  <div class="form-group">
+    <select name="type" class="form-control"><?php echo $type_select?></select>
+  </div>
+  <div class="form-group">
+	<select name="dstatus" class="form-control"><option value="-1">全部状态</option><option value="1">状态已开启</option><option value="0">状态已关闭</option></select>
+  </div>
+  <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> 搜索</button>
+  <a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-refresh"></i> 重置</a>
+  <a href="javascript:addframe()" class="btn btn-success"><i class="fa fa-plus"></i> 新增</a>
+</form>
+
+<table id="listTable">
+</table>
+
     </div>
   </div>
 <script src="<?php echo $cdnpublic?>layer/3.1.1/layer.min.js"></script>
+<script src="<?php echo $cdnpublic?>bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
+<script src="<?php echo $cdnpublic?>bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+<script src="../assets/js/custom.js"></script>
 <script>
+$(document).ready(function(){
+	updateToolbar();
+
+	$("#listTable").bootstrapTable({
+		url: 'ajax_pay.php?act=channelList',
+		pageNumber: 1,
+		pageSize: 15,
+        sidePagination: 'client',
+		classes: 'table table-striped table-hover table-bordered',
+		columns: [
+			{
+				field: 'id',
+				title: 'ID',
+				formatter: function(value, row, index) {
+					return '<b>'+value+'</b>';
+				}
+			},
+			{
+				field: 'name',
+				title: '显示名称'
+			},
+			{
+				field: 'mode',
+				title: '通道模式',
+				formatter: function(value, row, index) {
+					if(value == '1'){
+						return '商户直清'
+					}else{
+						return '平台代收'
+					}
+				}
+			},
+			{
+				field: 'rate',
+				title: '分成比例'
+			},
+			{
+				field: 'type',
+				title: '支付方式',
+				formatter: function(value, row, index) {
+					return '<img src="/assets/icon/'+row.typename+'.ico" width="16" onerror="this.style.display=\'none\'">'+row.typeshowname;
+				}
+			},
+			{
+				field: 'plugin',
+				title: '支付插件',
+				formatter: function(value, row, index) {
+					return '<span onclick="showPlugin(\''+value+'\')" title="查看支付插件详情">'+value+'</span>';
+				}
+			},
+			{
+				field: '',
+				title: '今日收款',
+				formatter: function(value, row, index) {
+					return '<a onclick="getAll(0,'+row.id+',this)" title="点此获取最新数据">[刷新]</a>';
+				}
+			},
+			{
+				field: '',
+				title: '昨日收款',
+				formatter: function(value, row, index) {
+					return '<a onclick="getAll(1,'+row.id+',this)" title="点此获取最新数据">[刷新]</a>';
+				}
+			},
+			{
+				field: 'status',
+				title: '状态',
+				formatter: function(value, row, index) {
+					if(value == '1'){
+						return '<a class="btn btn-xs btn-success" onclick="setStatus('+row.id+',0)">已开启</a>';
+					}else{
+						return '<a class="btn btn-xs btn-warning" onclick="setStatus('+row.id+',1)">已关闭</a>';
+					}
+				}
+			},
+			{
+				field: '',
+				title: '操作',
+				formatter: function(value, row, index) {
+					return '<a class="btn btn-xs btn-primary" onclick="editInfo('+row.id+')">配置密钥</a>&nbsp;<a class="btn btn-xs btn-info" onclick="editframe('+row.id+')">编辑</a>&nbsp;<a class="btn btn-xs btn-danger" onclick="delItem('+row.id+')">删除</a>&nbsp;<a href="./order.php?channel='+row.id+'" target="_blank" class="btn btn-xs btn-default">订单</a>&nbsp;<a onclick="copyframe('+row.id+')" class="btn btn-xs btn-default"><i class="fa fa-copy"></i></a>&nbsp;<a onclick="testpay('+row.id+')" class="btn btn-xs btn-default">测试</a>';
+				}
+			},
+		],
+	})
+})
+
 function changeType(plugin){
 	plugin = plugin || null;
 	if(plugin == null){
@@ -230,6 +308,38 @@ function editframe(id){
 		}
 	});
 }
+function copyframe(id){
+	var ii = layer.load(2, {shade:[0.1,'#fff']});
+	$.ajax({
+		type : 'GET',
+		url : 'ajax_pay.php?act=getChannel&id='+id,
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.code == 0){
+				$("#modal-store").modal('show');
+				$("#modal-title").html("快速复制支付通道");
+				$("#action").val("copy");
+				$("#id").val(data.data.id);
+				$("#name").val(data.data.name);
+				$("#rate").val(data.data.rate);
+				$("#type").val(data.data.type);
+				$("#daytop").val(data.data.daytop);
+				$("#paymin").val(data.data.paymin);
+				$("#paymax").val(data.data.paymax);
+				$("#mode").val(data.data.mode);
+				changeType(data.data.plugin);
+				changeMode()
+			}else{
+				layer.alert(data.msg, {icon: 2})
+			}
+		},
+		error:function(data){
+			layer.msg('服务器错误');
+			return false;
+		}
+	});
+}
 function save(){
 	if($("#name").val()==''||$("#rate").val()==''){
 		layer.alert('请确保各项不能为空！');return false;
@@ -253,7 +363,9 @@ function save(){
 					icon: 1,
 					closeBtn: false
 				}, function(){
-				  window.location.reload()
+					layer.closeAll();
+					$("#modal-store").modal('hide');
+					searchSubmit();
 				});
 			}else{
 				layer.alert(data.msg, {icon: 2})
@@ -275,7 +387,8 @@ function delItem(id) {
 		dataType : 'json',
 		success : function(data) {
 			if(data.code == 0){
-				window.location.reload()
+				layer.closeAll();
+				searchSubmit();
 			}else{
 				layer.alert(data.msg, {icon: 2});
 			}
@@ -296,7 +409,7 @@ function setStatus(id,status) {
 		dataType : 'json',
 		success : function(data) {
 			if(data.code == 0){
-				window.location.reload()
+				searchSubmit();
 			}else{
 				layer.msg(data.msg, {icon:2, time:1500});
 			}
@@ -348,7 +461,7 @@ function saveInfo(id){
 					icon: 1,
 					closeBtn: false
 				}, function(){
-				  window.location.reload()
+					layer.closeAll();
 				});
 			}else{
 				layer.alert(data.msg, {icon: 2})

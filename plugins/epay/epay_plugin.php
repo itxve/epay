@@ -46,8 +46,6 @@ class epay_plugin
 
             require(PAY_ROOT . "inc/epay.config.php");
             require(PAY_ROOT . "inc/EpayCore.class.php");
-
-            var_dump($order['typename']);
             $parameter = array(
                 "pid" => trim($epay_config['pid']),
                 "type" => $order['typename'],

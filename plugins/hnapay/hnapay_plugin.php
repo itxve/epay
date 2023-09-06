@@ -1,4 +1,7 @@
 <?php
+/***
+ * https://www.yuque.com/chenyanfei-sjuaz/uhng8q
+ */
 
 class hnapay_plugin
 {
@@ -7,7 +10,8 @@ class hnapay_plugin
 		'showname'    => '新生支付', //支付插件显示名称
 		'author'      => '新生支付', //支付插件作者
 		'link'        => 'https://www.hnapay.com/', //支付插件作者链接
-		'types'       => ['alipay','wxpay','qqpay','bank'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'types'       => ['alipay','wxpay','bank'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'transtypes'  => ['bank'], //支付插件支持的转账方式，可选的有alipay,qqpay,wxpay,bank
 		'inputs' => [ //支付插件要求传入的参数以及参数显示名称，可选的有appid,appkey,appsecret,appurl,appmchid
 			'appid' => [
 				'name' => '商户ID',
@@ -36,7 +40,7 @@ class hnapay_plugin
             ],
 		],
 		'select' => null,
-		'note' => '需要使用RSA密钥！<br/>如使用扫码支付，需上传<b>收款密钥</b>中的<b>商户私钥</b>到/plugins/hnapay/cert/mch.key', //支付密钥填写说明
+		'note' => '需要使用RSA密钥！<br/>如使用扫码支付，需将<b>收款密钥</b>中的<b>商户私钥</b>上传到/plugins/hnapay/cert/mch.key<br/>如使用付款功能，需将<b>付款密钥</b>中的<b>商户私钥</b>上传到/plugins/hnapay/cert/pay.key', //支付密钥填写说明
 		'bindwxmp' => true, //是否支持绑定微信公众号
 		'bindwxa' => true, //是否支持绑定微信小程序
 	];
@@ -177,6 +181,9 @@ class hnapay_plugin
 			$redirect_uri = '/pay/alipayjs/'.TRADE_NO.'/';
 			return ['type'=>'jump','url'=>'/user/oauth.php?state='.urlencode(authcode($redirect_uri, 'ENCODE', SYS_KEY))];
 		}
+
+		$blocks = checkBlockUser($_GET['userid'], TRADE_NO);
+		if($blocks) return $blocks;
 
 		$achannel = \lib\Channel::get($conf['login_alipay']);
 
@@ -452,18 +459,52 @@ class hnapay_plugin
 		}
 	}
 
+	//转账
+	static public function transfer($channel, $bizParam){
+		global $conf, $clientip;
+		if(empty($channel) || empty($bizParam))exit();
+
+		$param = [
+			'tranAmt' => $bizParam['money'],
+			'payType' => '1',
+			'auditFlag' => '0',
+			'payeeName' => $bizParam['payee_real_name'],
+			'payeeAccount' => $bizParam['payee_account'],
+			'note' => '',
+			'remark' => $bizParam['transfer_desc'],
+			'bankCode' => '',
+			'payeeType' => '1',
+			'notifyUrl' => $conf['localurl'].'pay/transfernotify/'.$channel['id'].'/',
+			'paymentTerminalInfo' => '01|A10001',
+			'deviceInfo' => $clientip,
+		];
+
+		$client = new HnaPayApi($channel['appid'], $channel['appkey'], $channel['appsecret'], 2);
+		try{
+			$result = $client->transfer($param, $bizParam['out_biz_no']);
+			return ['code'=>0, 'status'=>1, 'orderid'=>$result['hnapayOrderId'], 'paydate'=>date('Y-m-d H:i:s')];
+		}catch(Exception $ex){
+			return ['code'=>-1, 'msg'=>$ex->getMessage()];
+		}
+	}
+
 	//付款异步回调
 	static public function transfernotify(){
-		global $channel, $order, $DB;
+		global $channel;
 
 		require(PAY_ROOT.'inc/HnaPayApi.class.php');
 		$pay = new HnaPayApi($channel['appid'], $channel['appkey'], $channel['appsecret'], 2);
-		if($pay->jsapiVerify($_POST)){
+		if($pay->transferVerify($_POST)){
 			if($_POST['resultCode'] == '0000'){
-				return ['type'=>'html','data'=>'success'];
+				$status = 1;
 			}else{
-				return ['type'=>'html','data'=>'status_error='];
+				$status = 2;
 			}
+			if($_POST['errorMsg']){
+				$errmsg = '['.$_POST['errorCode'].']'.$_POST['errorMsg'];
+			}
+			processTransfer($_POST['merOrderId'], $status, $errmsg);
+			return ['type'=>'html','data'=>'success'];
 		}else{
 			return ['type'=>'html','data'=>'sign_error'];
 		}

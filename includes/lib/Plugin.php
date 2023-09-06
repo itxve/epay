@@ -38,7 +38,7 @@ class Plugin {
 
 	static public function loadForPay($s){
 		global $DB,$conf,$order,$channel,$ordername;
-		if(preg_match('/^(.[a-zA-Z0-9]+)\/([a-zA-Z0-9]+)\/$/',$s, $matchs)){
+        if(preg_match('/^(.[a-zA-Z0-9]+)\/([a-zA-Z0-9]+)\/$/',$s, $matchs)){
 			$func = $matchs[1];
 			$trade_no = $matchs[2];
 			
@@ -71,7 +71,7 @@ class Plugin {
 
 	static public function loadForSubmit($plugin, $trade_no, $ismapi=false){
 		global $DB,$conf,$order,$channel,$ordername,$userrow;
-		if(preg_match('/^(.[a-zA-Z0-9]+)$/',$plugin) && preg_match('/^(.[a-zA-Z0-9]+)$/',$trade_no)){
+        if(preg_match('/^(.[a-zA-Z0-9]+)$/',$plugin) && preg_match('/^(.[a-zA-Z0-9]+)$/',$trade_no)){
 			$func = 'submit';
 			if($ismapi) $func = 'mapi';
 			
@@ -206,6 +206,22 @@ class Plugin {
 		}
 	}
 
+	static public function call($func, $channel, $bizParam){
+		$filename = PLUGIN_ROOT.$channel['plugin'].'/'.$channel['plugin'].'_plugin.php';
+		$classname = '\\'.$channel['plugin'].'_plugin';
+		if(file_exists($filename)){
+			include_once $filename;
+			if (class_exists($classname, false) && method_exists($classname, $func)) {
+				$result = $classname::$func($channel, $bizParam);
+				return $result;
+			}else{
+				return ['code'=>-1, 'msg'=>'插件方法不存在:'.$func];
+			}
+		}else{
+			return ['code'=>-1, 'msg'=>'支付插件不存在'];
+		}
+	}
+
 	static public function updateAll(){
 		global $DB;
 		$DB->exec("TRUNCATE TABLE pre_plugin");
@@ -213,7 +229,7 @@ class Plugin {
 		foreach($list as $name){
 			if($config = self::getConfig($name)){
 				if($config['name']!=$name)continue;
-				$DB->insert('plugin',['name'=>$config['name'], 'showname'=>$config['showname'], 'author'=>$config['author'], 'link'=>$config['link'], 'types'=>implode(',',$config['types'])]);
+				$DB->insert('plugin',['name'=>$config['name'], 'showname'=>$config['showname'], 'author'=>$config['author'], 'link'=>$config['link'], 'types'=>implode(',',$config['types']), 'transtypes'=>$config['transtypes']?implode(',',$config['transtypes']):null]);
 			}
 		}
 		return true;
@@ -221,7 +237,7 @@ class Plugin {
 
 	static public function get($name){
 		global $DB;
-		$result = $DB->getRow("SELECT * FROM pre_plugin WHERE name='$name'");
+		$result = $DB->getRow("SELECT * FROM pre_plugin WHERE name=:name", [':name'=>$name]);
 		return $result;
 	}
 

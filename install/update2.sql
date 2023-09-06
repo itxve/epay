@@ -23,23 +23,6 @@ ADD COLUMN `notifytime` datetime DEFAULT NULL;
 ALTER TABLE `pre_order`
 ADD COLUMN `param` varchar(255) DEFAULT NULL;
 
-CREATE TABLE IF NOT EXISTS `pre_alipayrisk` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `channel` int(10) unsigned NOT NULL,
-  `pid` varchar(40) NOT NULL,
-  `smid` varchar(40) DEFAULT NULL,
-  `tradeNos` varchar(40) DEFAULT NULL,
-  `risktype` varchar(40) DEFAULT NULL,
-  `risklevel` varchar(60) DEFAULT NULL,
-  `riskDesc` varchar(500) DEFAULT NULL,
-  `complainTime` varchar(128) DEFAULT NULL,
-  `complainText` varchar(500) DEFAULT NULL,
-  `date` datetime DEFAULT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '0',
-  `process_code` varchar(2) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 ALTER TABLE `pre_user`
 ADD COLUMN `certtype` tinyint(4) NOT NULL DEFAULT '0',
 ADD COLUMN `certtoken` varchar(64) DEFAULT NULL;
@@ -75,9 +58,6 @@ CREATE TABLE IF NOT EXISTS `pre_weixin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `pre_type` VALUES (6, 'paypal', 0, 'PayPal', 0);
-
-ALTER TABLE `pre_group`
-MODIFY COLUMN `info` varchar(1024) DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS `pre_domain` (
   `id` int(11) unsigned NOT NULL auto_increment,
@@ -237,3 +217,31 @@ ADD COLUMN `expiretime` datetime DEFAULT NULL;
 
 ALTER TABLE `pre_wxkfaccount`
 ADD COLUMN `name` varchar(300) DEFAULT NULL;
+
+ALTER TABLE `pre_user`
+ADD COLUMN `msgconfig` varchar(150) DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS `pre_transfer` (
+  `biz_no` char(19) NOT NULL,
+  `pay_order_no` varchar(80) DEFAULT NULL,
+  `uid` int(11) NOT NULL,
+  `type` varchar(10) NOT NULL,
+  `channel` int(10) unsigned NOT NULL,
+  `account` varchar(128) NOT NULL,
+  `username` varchar(128) DEFAULT NULL,
+  `money` decimal(10,2) NOT NULL,
+  `costmoney` decimal(10,2) DEFAULT NULL,
+  `paytime` datetime DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT '0',
+  `api` tinyint(1) NOT NULL DEFAULT '0',
+  `desc` varchar(80) DEFAULT NULL,
+  `result` varchar(80) DEFAULT NULL,
+ PRIMARY KEY (`biz_no`),
+ KEY uid (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `pre_plugin`
+ADD COLUMN `transtypes` varchar(50) DEFAULT NULL;
+
+ALTER TABLE `pre_regcode`
+ADD COLUMN `scene` varchar(20) NOT NULL DEFAULT '';

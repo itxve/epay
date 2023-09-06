@@ -8,6 +8,7 @@ class qqpay_plugin
 		'author'      => 'QQ钱包', //支付插件作者
 		'link'        => 'https://mp.qpay.tenpay.com/', //支付插件作者链接
 		'types'       => ['qqpay'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'transtypes'  => ['qqpay'], //支付插件支持的转账方式，可选的有alipay,qqpay,wxpay,bank
 		'inputs' => [ //支付插件要求传入的参数以及参数显示名称，可选的有appid,appkey,appsecret,appurl,appmchid
 			'appid' => [
 				'name' => 'QQ钱包商户号',
@@ -176,5 +177,44 @@ class qqpay_plugin
 			$result = ['code'=>-1, 'msg'=>$e->getMessage()];
 		}
 		return $result;
+	}
+
+	//转账
+	static public function transfer($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+
+		$money = strval($bizParam['money'] * 100);
+		$qqpay_config = require(PLUGIN_ROOT.'qqpay/inc/config.php');
+		try{
+			$client = new \QQPay\TransferService($qqpay_config);
+			$result = $client->transfer($bizParam['out_biz_no'], $bizParam['payee_account'], $bizParam['payee_real_name'], $money, $bizParam['transfer_desc']);
+			return ['code'=>0, 'status'=>1, 'orderid'=>$result['transaction_id'], 'paydate'=>date('Y-m-d H:i:s')];
+		}catch(\QQPay\QQPayException $e){
+			$result = $e->getResponse();
+			return ['code'=>-1, 'errcode'=>$result['err_code'], 'msg'=>$e->getMessage()];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
+	}
+
+	//转账查询
+	static public function transfer_query($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+
+		$qqpay_config = require(PLUGIN_ROOT.'qqpay/inc/config.php');
+		try{
+			$client = new \QQPay\TransferService($qqpay_config);
+			$result = $client->transferQuery($bizParam['out_biz_no']);
+			if($result['status'] == 'SUCCESS'){
+				$status = 1;
+			}elseif($result['status'] == 'REFUND'){
+				$status = 2;
+			}else{
+				$status = 0;
+			}
+			return ['code'=>0, 'status'=>$status, 'amount'=>round($result['total_fee']/100, 2), 'paydate'=>$result['transfer_time'], 'errmsg'=>''];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
 	}
 }

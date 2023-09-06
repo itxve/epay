@@ -51,7 +51,7 @@ foreach($account_list as $row){
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">客服账号ID选择</label>
 	  <div class="col-sm-9"><select name="wework_paykfid" id="wework_paykfid" class="form-control" default="<?php echo $conf['wework_paykfid']; ?>"><?php echo $account_select?></option></select></div>
-	</div>
+	</div><br/>
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">人工客服链接</label>
 	  <div class="col-sm-9"><input type="text" name="wework_contact" value="<?php echo $conf['wework_contact']; ?>" class="form-control" placeholder="选填，填写后在支付消息后面会追加人工客服链接"/></div>

@@ -25,6 +25,7 @@ class PdoHelper
 		$this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);
 		$this->db->exec("set sql_mode = ''");
 		$this->db->exec("set names utf8mb4");
+		$this->db->exec("set time_zone='+8:00'");
 	}
 
 	/**
@@ -145,7 +146,7 @@ class PdoHelper
 			$keys[] = "`{$k}`";
 			if ($v == 'NOW()' || $v == 'CURDATE()' || $v == 'CURTIME()') {
 				$marks[] = $v;
-			}elseif ($v == '') {
+			}elseif ($v === null || $v === false) {
 				$marks[] = 'NULL';
 			}else{
 				$values[":".$k] = $v;
@@ -174,7 +175,7 @@ class PdoHelper
 			foreach ($data as $k=>$v){
 				if($v == 'NOW()' || $v == 'CURDATE()' || $v == 'CURTIME()'){
 					$setstr[] = "`{$k}` = ".$v;
-				}elseif($v == ''){
+				}elseif($v === null || $v === false){
 					$setstr[] = "`{$k}` = NULL";
 				}else{
 					$values[":M_UPDATE_".$k] = $v;

@@ -8,6 +8,7 @@ class alipay_plugin
 		'author'      => '支付宝', //支付插件作者
 		'link'        => 'https://b.alipay.com/signing/productSetV2.htm', //支付插件作者链接
 		'types'       => ['alipay'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'transtypes'  => ['alipay','bank'], //支付插件支持的转账方式，可选的有alipay,qqpay,wxpay,bank
 		'inputs' => [ //支付插件要求传入的参数以及参数显示名称，可选的有appid,appkey,appsecret,appurl,appmchid
 			'appid' => [
 				'name' => '应用APPID',
@@ -30,6 +31,7 @@ class alipay_plugin
 			'2' => '手机网站支付',
 			'3' => '当面付扫码',
 			'4' => 'JS支付',
+			'5' => '预授权支付',
 		],
 		'note' => '<p>选择可用的接口，只能选择已经签约的产品，否则会无法支付！</p><p>如果使用公钥证书模式，需将<font color="red">应用公钥证书、支付宝公钥证书、支付宝根证书</font>3个crt文件放置于<font color="red">/plugins/alipay/cert/</font>文件夹（或<font color="red">/plugins/alipay/cert/应用APPID/</font>文件夹）</p>', //支付密钥填写说明
 		'bindwxmp' => false, //是否支持绑定微信公众号
@@ -45,7 +47,8 @@ class alipay_plugin
 		}
 		elseif($isMobile && (in_array('3',$channel['apptype'])||in_array('4',$channel['apptype'])) && !in_array('2',$channel['apptype']) || !$isMobile && !in_array('1',$channel['apptype'])){
 			return ['type'=>'jump','url'=>'/pay/qrcode/'.TRADE_NO.'/'];
-		}else{
+		}
+		else{
 		
 		if(strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger')!==false){
 			if(!$submit2){
@@ -76,7 +79,7 @@ class alipay_plugin
 			}
 			
 			return ['type'=>'html','data'=>$html];
-		}else{
+		}elseif(in_array('1',$channel['apptype'])){
 			if($conf['alipay_paymode'] == 1){
 				return ['type'=>'jump','url'=>'/pay/qrcodepc/'.TRADE_NO.'/'];
 			}
@@ -97,6 +100,8 @@ class alipay_plugin
 			}
 
 			return ['type'=>'html','data'=>$html];
+		}elseif(in_array('5',$channel['apptype'])){
+			return ['type'=>'jump','url'=>'/pay/preauth/'.TRADE_NO.'/?d=1'];
 		}
 		}
 	}
@@ -158,8 +163,10 @@ class alipay_plugin
 		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
 		if(!in_array('3',$channel['apptype']) && in_array('2',$channel['apptype'])){
 			$code_url = $siteurl.'pay/submit/'.TRADE_NO.'/';
-		}elseif(!in_array('3',$channel['apptype']) && !in_array('2',$channel['apptype']) && in_array('4',$channel['apptype'])){
+		}elseif(!in_array('3',$channel['apptype']) && in_array('4',$channel['apptype'])){
 			$code_url = $siteurl.'pay/jspay/'.TRADE_NO.'/';
+		}elseif(!in_array('3',$channel['apptype']) && in_array('5',$channel['apptype'])){
+			$code_url = $siteurl.'pay/preauth/'.TRADE_NO.'/';
 		}else{
 		
 		$alipay_config = require(PAY_ROOT.'inc/config.php');
@@ -184,6 +191,35 @@ class alipay_plugin
 		}else{
 			return ['type'=>'qrcode','page'=>'alipay_qrcode','url'=>$code_url];
 		}
+	}
+
+	//预授权支付
+	static public function preauth(){
+		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
+
+		$alipay_config = require(PAY_ROOT.'inc/config.php');
+		$alipay_config['notify_url'] = $conf['localurl'].'pay/preauthnotify/'.TRADE_NO.'/';
+		$bizContent = [
+			'out_order_no' => TRADE_NO,
+			'out_request_no' => TRADE_NO,
+			'order_title' => $ordername,
+			'amount' => $order['realmoney'],
+			'product_code' => 'PREAUTH_PAY'
+		];
+		$bizContent['business_params'] = ['mc_create_trade_ip' => $clientip];
+		try{
+			$aop = new \Alipay\AlipayTradeService($alipay_config);
+			$result = $aop->preAuthFreeze($bizContent);
+		}catch(Exception $e){
+			return ['type'=>'error','msg'=>'支付宝下单失败！'.$e->getMessage()];
+		}
+		if($_GET['d']=='1'){
+			$redirect_url='data.backurl';
+		}else{
+			$redirect_url='\'/pay/ok/'.TRADE_NO.'/\'';
+		}
+		$code_url = 'alipays://platformapi/startApp?appId=20000125&orderSuffix='.urlencode($result).'#Intent;scheme=alipays;package=com.eg.android.AlipayGphone;end';
+		return ['type'=>'page','page'=>'alipay_h5','data'=>['code_url'=>$code_url, 'redirect_url'=>$redirect_url]];
 	}
 
 	//JS支付
@@ -342,6 +378,56 @@ class alipay_plugin
 		}
 	}
 
+	//预授权支付回调
+	static public function preauthnotify(){
+		global $channel, $order, $conf, $ordername, $clientip;
+
+		$alipay_config = require(PAY_ROOT.'inc/config.php');
+		$alipay_config['notify_url'] = $conf['localurl'].'pay/notify/'.TRADE_NO.'/';
+		$aop = new \Alipay\AlipayService($alipay_config);
+
+		$verify_result = $aop->check($_POST);
+
+		if($verify_result) {//验证成功
+			//商户订单号
+			$out_trade_no = $_POST['out_order_no'];
+
+			//资金授权订单号
+			$auth_no = $_POST['auth_no'];
+
+			$buyer_id = $result['payer_user_id'];
+			
+			if($out_trade_no == TRADE_NO){
+				$bizContent = [
+					'out_trade_no' => TRADE_NO,
+					'total_amount' => $order['realmoney'],
+					'subject' => $ordername,
+					'product_code' => 'PREAUTH_PAY',
+					'auth_no' => $auth_no,
+					'auth_confirm_mode' => 'COMPLETE'
+				];
+				try{
+					$aop = new \Alipay\AlipayTradeService($alipay_config);
+					$result = $aop->scanPay($bizContent);
+				}catch(Exception $e){
+					\lib\Payment::updateOrder(TRADE_NO, $auth_no, $buyer_id, 4);
+					return ['type'=>'html','data'=>'success'];
+					//return ['type'=>'error','msg'=>'支付宝下单失败！'.$e->getMessage()];
+				}
+				$trade_no = $result['trade_no'];
+				$buyer_id = $result['buyer_user_id'];
+				$total_amount = $result['total_amount'];
+
+				processNotify($order, $trade_no, $buyer_id);
+			}
+			return ['type'=>'html','data'=>'success'];
+		}
+		else {
+			//验证失败
+			return ['type'=>'html','data'=>'fail'];
+		}
+	}
+
 	//退款
 	static public function refund($order){
 		global $channel;
@@ -360,6 +446,73 @@ class alipay_plugin
 			return ['code'=>-1, 'msg'=>$e->getMessage()];
 		}
 		return  ['code'=>0, 'trade_no'=>$result['trade_no'], 'refund_fee'=>$result['refund_fee'], 'refund_time'=>$result['gmt_refund_pay'], 'buyer'=>$result['buyer_user_id']];
+	}
+
+	//转账
+	static public function transfer($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+		
+		if($bizParam['type'] == 'alipay'){
+			if(is_numeric($bizParam['payee_account']) && substr($bizParam['payee_account'],0,4)=='2088')$is_userid = 1;
+			elseif(strpos($bizParam['payee_account'], '@')!==false || is_numeric($bizParam['payee_account']))$is_userid = 0;
+			else $is_userid = 2;
+		}
+
+		$alipay_config = require(PLUGIN_ROOT.$channel['plugin'].'/inc/config.php');
+		try{
+			$transfer = new \Alipay\AlipayTransferService($alipay_config);
+			if($bizParam['type'] == 'alipay'){
+				$result = $transfer->transferToAccount($bizParam['out_biz_no'], $bizParam['money'], $is_userid, $bizParam['payee_account'], $bizParam['payee_real_name'], $bizParam['transfer_name']);
+			}else{
+				$result = $transfer->transferToBankCard($bizParam['out_biz_no'], $bizParam['money'], $bizParam['payee_account'], $bizParam['payee_real_name'], $bizParam['transfer_name']);
+			}
+
+			return ['code'=>0, 'status'=>1, 'orderid'=>$result['order_id'], 'paydate'=>$result['trans_date']];
+		}catch(\Alipay\Aop\AlipayResponseException $e){
+			$result = $e->getResponse();
+			return ['code'=>-1, 'errcode'=>$result['sub_code'], 'msg'=>$e->getMessage()];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
+	}
+
+	//转账查询
+	static public function transfer_query($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+
+		$alipay_config = require(PLUGIN_ROOT.$channel['plugin'].'/inc/config.php');
+		try{
+			$aop = new \Alipay\AlipayTransferService($alipay_config);
+			$result = $aop->query($bizParam['orderid'], 1);
+			if($result['status'] == 'SUCCESS'){
+				$status = 1;
+			}elseif($result['status'] == 'DEALING' || $result['status'] == 'WAIT_PAY'){
+				$status = 0;
+			}else{
+				$status = 2;
+			}
+			if($result['fail_reason']){
+				$errmsg = '['.$result['error_code'].']'.$result['fail_reason'];
+			}
+			return ['code'=>0, 'status'=>$status, 'amount'=>$result['trans_amount'], 'paydate'=>$result['pay_date'], 'errmsg'=>$errmsg];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
+	}
+
+	//余额查询
+	static public function balance_query($channel, $bizParam){
+		if(empty($channel))exit();
+
+		$user_type = is_numeric($bizParam['user_id'])&&substr($bizParam['user_id'],0,4)=='2088' ? 0 : 1;
+		$alipay_config = require(PLUGIN_ROOT.$channel['plugin'].'/inc/config.php');
+		try{
+			$aop = new \Alipay\AlipayTransferService($alipay_config);
+			$result = $aop->accountQuery($bizParam['user_id'], $user_type);
+			return ['code'=>0, 'amount'=>$result['available_amount']];
+		}catch(Exception $e){
+			return ['code'=>-1, 'msg'=>$e->getMessage()];
+		}
 	}
 
 	//支付宝风险交易回调

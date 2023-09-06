@@ -62,7 +62,7 @@ class Payment {
 				include_once SYSTEM_ROOT.'txprotect.php';
 				$code_url = $result['url'];
 				if($conf['pageordername']==1)$order['name']=$ordername?$ordername:'onlinepay';
-				if($conf['wework_payopen'] == 1 && $result['page'] == 'wxpay_wap' && strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger')===false){
+				if($conf['wework_payopen'] == 1 && ($result['page'] == 'wxpay_wap' && strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger')===false || $result['page'] == 'wxpay_qrcode' && checkmobile())){
 					$code_url_wxkf = self::getWxkfPayUrl($code_url);
 					if($code_url_wxkf){
 						$code_url = $code_url_wxkf;
@@ -94,6 +94,9 @@ class Payment {
 			case 'jump':
 				$json['payurl'] = $result['url'];
 				break;
+			case 'html':
+				$json['html'] = $result['data'];
+				break;
 			case 'qrcode':
 				$json['qrcode'] = $result['url'];
 				break;
@@ -114,7 +117,7 @@ class Payment {
 	// 订单回调处理
 	static public function processOrder($isnotify, $order, $api_trade_no, $buyer){
 		global $DB,$conf,$siteurl;
-		if($order['status']==0){
+		if($order['status']==0 || $order['status']==4){
 			if($DB->exec("UPDATE `pre_order` SET `status`=1 WHERE `trade_no`='".$order['trade_no']."'")){
 
 				$data = ['endtime'=>'NOW()', 'date'=>'CURDATE()'];
@@ -153,10 +156,11 @@ class Payment {
 	}
 
 	// 更新订单信息
-	static public function updateOrder($trade_no, $api_trade_no, $buyer = null){
+	static public function updateOrder($trade_no, $api_trade_no, $buyer = null, $status = null){
 		global $DB;
 		$data = ['api_trade_no'=>$api_trade_no];
 		if(!empty($buyer)) $data['buyer'] = $buyer;
+		if($status) $data['status'] = $status;
 		$DB->update('order', $data, ['trade_no'=>$trade_no]);
 	}
 
@@ -222,6 +226,63 @@ class Payment {
 			}
 		}else{
 			throw new Exception('非电商收付通订单');
+		}
+	}
+
+	//支付宝预授权资金支付
+	public static function alipayPreAuthPay($trade_no){
+		global $channel, $order, $conf;
+		$alipay_config = require(PLUGIN_ROOT.$channel['plugin'].'/inc/config.php');
+		$alipaySevice = new \Alipay\AlipayTradeService($alipay_config);
+		$bizContent = [
+			'out_order_no' => $trade_no,
+			'out_request_no' => $trade_no,
+		];
+		$result = $alipaySevice->preAuthQuery($bizContent);
+		//print_r($result);exit;
+		if(!isset($result['auth_no'])) throw new Exception('预授权订单查询失败');
+		if($result['rest_amount'] == 0) throw new Exception('剩余冻结金额为0');
+		if($result['order_status'] == 'AUTHORIZED'){
+			$auth_no = $result['auth_no'];
+			$ordername = !empty($conf['ordername'])?ordername_replace($conf['ordername'],$order['name'],$order['uid'],$trade_no):$order['name'];
+			$bizContent = [
+				'out_trade_no' => $trade_no,
+				'total_amount' => $result['rest_amount'],
+				'subject' => $ordername,
+				'product_code' => 'PREAUTH_PAY',
+				'auth_no' => $auth_no,
+				'auth_confirm_mode' => 'COMPLETE'
+			];
+			return $aop->scanPay($bizContent);
+		}else{
+			throw new Exception('该笔订单非已授权状态，无需支付');
+		}
+	}
+
+	//支付宝预授权资金解冻
+	public static function alipayUnfreeze($trade_no){
+		global $channel;
+		$alipay_config = require(PLUGIN_ROOT.$channel['plugin'].'/inc/config.php');
+		$alipaySevice = new \Alipay\AlipayTradeService($alipay_config);
+		$bizContent = [
+			'out_order_no' => $trade_no,
+			'out_request_no' => $trade_no,
+		];
+		$result = $alipaySevice->preAuthQuery($bizContent);
+		//print_r($result);exit;
+		if(!isset($result['auth_no'])) throw new Exception('预授权订单查询失败');
+		if($result['rest_amount'] == 0) throw new Exception('剩余冻结金额为0');
+		if($result['order_status'] == 'AUTHORIZED'){
+			$auth_no = $result['auth_no'];
+			$bizContent = [
+				'auth_no' => $auth_no,
+				'out_request_no' => date("YmdHis").rand(11111,99999),
+				'amount' => $result['rest_amount'],
+				'remark' => '解冻资金'
+			];
+			return $alipaySevice->preAuthUnfreeze($bizContent);
+		}else{
+			throw new Exception('该笔订单非已授权状态，无需解冻');
 		}
 	}
 

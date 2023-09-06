@@ -7,25 +7,25 @@ include './head.php';
 <?php
 
 ?>
- <div id="content" class="app-content" role="main">
-    <div class="app-content-body ">
+    <div id="content" class="app-content" role="main">
+        <div class="app-content-body ">
 
-<div class="bg-light lter b-b wrapper-md hidden-print">
-  <h1 class="m-n font-thin h3">使用说明</h1>
-</div>
-<div class="wrapper-md control">
-<?php if(isset($msg)){?>
-<div class="alert alert-info">
-	<?php echo $msg?>
-</div>
-<?php }?>
-	<div class="panel panel-default">
-		<div class="panel-heading font-bold">
-			使用说明
-		</div>
-		<div class="panel-body">
-		<h3>1分钟读懂<?php echo $conf['sitename']?>交易规则</h3>
-			<div style="line-height:26px"><span style="white-space:nowrap;"> 
+            <div class="bg-light lter b-b wrapper-md hidden-print">
+                <h1 class="m-n font-thin h3">使用说明</h1>
+            </div>
+            <div class="wrapper-md control">
+                <?php if(isset($msg)){?>
+                    <div class="alert alert-info">
+                        <?php echo $msg?>
+                    </div>
+                <?php }?>
+                <div class="panel panel-default">
+                    <div class="panel-heading font-bold">
+                        使用说明
+                    </div>
+                    <div class="panel-body">
+                        <h3>1分钟读懂<?php echo $conf['sitename']?>交易规则</h3>
+                        <div style="line-height:26px"><span style="white-space:nowrap;">
 <p style="white-space:normal;margin-bottom:14px;color:#333333;font-family:'microsoft yahei';font-size:14px;line-height:24px;">
 	<strong>一、交易即时到账</strong> 
 </p>
@@ -38,9 +38,9 @@ include './head.php';
 <p style="white-space:normal;margin-top:0px;margin-bottom:10px;padding:0px;border:0px;font-size:14px;line-height:25px;color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;text-indent:2em;background-color:#FFFFFF;">
 	1、星期一、<span style="font-size:13px;line-height:20px;text-indent:26px;">星期</span>二、<span style="font-size:13px;line-height:20px;text-indent:26px;">星期</span>三、<span style="font-size:13px;line-height:20px;text-indent:26px;">星期</span>四、<span style="color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;font-size:14px;line-height:25px;text-indent:28px;white-space:normal;background-color:#FFFFFF;">星期五、</span><span style="color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;white-space:normal;font-size:13px;line-height:20px;text-indent:26px;">星期</span><span style="color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;font-size:14px;line-height:25px;text-indent:28px;white-space:normal;background-color:#FFFFFF;">六、</span><span style="color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;white-space:normal;font-size:13px;line-height:20px;text-indent:26px;">星期</span><span style="color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;font-size:14px;line-height:25px;text-indent:28px;white-space:normal;background-color:#FFFFFF;">日</span>，0点~23点59分59秒间提现的资金将于次日23点前到账。
 </p>
-<!--p style="white-space:normal;margin-top:0px;margin-bottom:10px;padding:0px;border:0px;font-size:14px;line-height:25px;color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;text-indent:2em;background-color:#FFFFFF;">
-	<span style="font-size:13px;line-height:20px;text-indent:26px;">2、国家法定节假日期间提现的资金将于 节假日后第一个工作日23点前到账。</span> 
-</p-->
+                                <!--p style="white-space:normal;margin-top:0px;margin-bottom:10px;padding:0px;border:0px;font-size:14px;line-height:25px;color:#79848E;font-family:'Microsoft YaHei', 'Heiti SC', simhei, 'Lucida Sans Unicode', 'Myriad Pro', 'Hiragino Sans GB', Verdana;text-indent:2em;background-color:#FFFFFF;">
+                                    <span style="font-size:13px;line-height:20px;text-indent:26px;">2、国家法定节假日期间提现的资金将于 节假日后第一个工作日23点前到账。</span>
+                                </p-->
 <p style="white-space:normal;margin-bottom:14px;color:#333333;font-family:'microsoft yahei';font-size:14px;line-height:24px;">
 	<strong>三、提现费率</strong> 
 </p>
@@ -86,10 +86,10 @@ include './head.php';
 </p>
 </span></div>
 
-		</div>
-	</div>
-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
 <?php include 'foot.php';?>

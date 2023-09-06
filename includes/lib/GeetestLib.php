@@ -1,273 +1,146 @@
 <?php
 namespace lib;
 /**
- * 极验行为式验证安全平台，php 网站主后台包含的库文件
- *
- * @author Tanxu
+ * 极验3.0 lib
  */
-class GeetestLib {
-    const GT_SDK_VERSION = 'php_3.0.0';
+class GeetestLib
+{
+    const SDK_VERSION = 'php_3.0.0';
+    const JSON_FORMAT = "1";
+    
+    private $geetest_id;
+    private $geetest_key;
 
-    public static $connectTimeout = 1;
-    public static $socketTimeout  = 1;
-
-    private $response;
-	private $captcha_id;
-	private $private_key;
-
-    public function __construct($captcha_id, $private_key) {
-        $this->captcha_id  = $captcha_id;
-        $this->private_key = $private_key;
+    public function __construct($geetest_id, $geetest_key) {
+        $this->geetest_id  = $geetest_id;
+        $this->geetest_key = $geetest_key;
     }
 
-    /**
-     * 判断极验服务器是否down机
-     *
-     * @param array $data
-     * @return int
-     */
-    public function pre_process($param, $new_captcha=1) {
-		if(!empty($this->captcha_id) && !empty($this->private_key)){
-        $data = array('gt'=>$this->captcha_id,
-                     'new_captcha'=>$new_captcha
-                );
-        $data = array_merge($data,$param);
-        $query = http_build_query($data);
-        $url = "http://api.geetest.com/register.php?" . $query;
-        $challenge = $this->send_request($url);
-        if (strlen($challenge) != 32) {
-            $this->failback_process();
-            return 0;
+    //验证初始化
+    public function pre_process($params) {
+        if(!empty($this->geetest_id) && !empty($this->geetest_key)){
+            return $this->pre_process_api($params);
+        }else{
+            return $this->pre_process_demo($params);
         }
-        $this->success_process($challenge);
-        return 1;
-		}else{
-		$url = "https://www.geetest.com/demo/gt/register-fullpage?t=" . time() . "123";
-		$data = get_curl($url,0,'https://www.geetest.com/demo/slide-popup.html');
-		$this->response = json_decode($data, true);
-		return 1;
-		}
     }
 
-    /**
-     * @param $challenge
-     */
+    private function pre_process_api($params) {
+        $public_params = [
+            'digestmod' => 'md5',
+            'gt' => $this->geetest_id,
+            'sdk' => self::SDK_VERSION,
+            'json_format' => self::JSON_FORMAT
+        ];
+        $params = array_merge($params, $public_params);
+        $url = 'http://api.geetest.com/register.php?' . http_build_query($params);
+        $res = get_curl($url);
+        $arr = json_decode($res, true);
+        if($arr && isset($arr['challenge'])){
+            return $this->success_process($arr['challenge']);
+        }else{
+            return $this->failback_process();
+        }
+    }
+
     private function success_process($challenge) {
-        $challenge      = md5($challenge . $this->private_key);
+        $challenge      = md5($challenge . $this->geetest_key);
         $result         = array(
             'success'   => 1,
-            'gt'        => $this->captcha_id,
+            'gt'        => $this->geetest_id,
             'challenge' => $challenge,
-            'new_captcha'=>1
+            'new_captcha'=>true
         );
-        $this->response = $result;
+        return $result;
     }
 
-    /**
-     *
-     */
     private function failback_process() {
-        $rnd1           = md5(rand(0, 100));
-        $rnd2           = md5(rand(0, 100));
-        $challenge      = $rnd1 . substr($rnd2, 0, 2);
+        $challenge      = md5(uniqid(mt_rand(), true) . microtime());
         $result         = array(
             'success'   => 0,
-            'gt'        => $this->captcha_id,
+            'gt'        => $this->geetest_id,
             'challenge' => $challenge,
-            'new_captcha'=>1
+            'new_captcha'=>true
         );
-        $this->response = $result;
+        return $result;
     }
 
-    /**
-     * @return mixed
-     */
-    public function get_response_str() {
-        return json_encode($this->response);
-    }
-
-    /**
-     * 返回数组方便扩展
-     *
-     * @return mixed
-     */
-    public function get_response() {
-        return $this->response;
-    }
-
-    /**
-     * 正常模式获取验证结果
-     *
-     * @param string $challenge
-     * @param string $validate
-     * @param string $seccode
-     * @param array $param
-     * @return int
-     */
-    public function success_validate($challenge, $validate, $seccode,$param, $json_format=1) {
-		if(!empty($this->captcha_id) && !empty($this->private_key)){
-        if (!$this->check_validate($challenge, $validate)) {
-            return 0;
-        }
-        $query = array(
-            "seccode" => $seccode,
-            "timestamp"=>time(),
-            "challenge"=>$challenge,
-            "captchaid"=>$this->captcha_id,
-            "json_format"=>$json_format,
-            "sdk"     => self::GT_SDK_VERSION
-        );
-        $query = array_merge($query,$param);
-        $url          = "http://api.geetest.com/validate.php";
-        $codevalidate = $this->post_request($url, $query);
-        $obj = json_decode($codevalidate,true);
-        if ($obj === false){
-            return 0;
-        }
-        if ($obj['seccode'] == md5($seccode)) {
-            return 1;
-        } else {
-            return 0;
-        }
-		}else{
-		$url = "https://www.geetest.com/demo/gt/validate-fullpage";
-		$post = "geetest_challenge=".$challenge."&geetest_validate=".$validate."&geetest_seccode=".$seccode;
-		$data = get_curl($url,$post,'https://www.geetest.com/demo/slide-popup.html');
-		$arr = json_decode($data, true);
-		if($arr['status'] == 'success')return 1;
-		else return 0;
-		}
-    }
-
-    /**
-     * 宕机模式获取验证结果
-     *
-     * @param $challenge
-     * @param $validate
-     * @param $seccode
-     * @return int
-     */
-    public function fail_validate($challenge, $validate, $seccode) {
-        if(md5($challenge) == $validate){
-            return 1;
+    private function pre_process_demo($params) {
+        $url = 'https://www.geetest.com/demo/gt/register-fullpage?t=' . time() . "123";
+        $referer = 'https://www.geetest.com/demo/slide-popup.html';
+        $data = get_curl($url, 0, $referer);
+        $arr = json_decode($data, true);
+        if($arr && isset($arr['challenge'])){
+            return $arr;
         }else{
-            return 0;
+            return $this->failback_process();
         }
     }
 
-    /**
-     * @param $challenge
-     * @param $validate
-     * @return bool
-     */
+    //正常流程下（即验证初始化成功），二次验证
+    public function success_validate($challenge, $validate, $seccode, $params) {
+        if(!empty($this->geetest_id) && !empty($this->geetest_key)){
+            return $this->success_validate_api($challenge, $validate, $seccode, $params);
+        }else{
+            return $this->success_validate_demo($challenge, $validate, $seccode);
+        }
+    }
+
+    private function success_validate_api($challenge, $validate, $seccode, $params) {
+        if (!$this->check_validate($challenge, $validate)) {
+            return false;
+        }
+        $public_params = [
+            'seccode' => $seccode,
+            'challenge' => $challenge,
+            'captchaid' => $this->geetest_id,
+            'sdk' => self::SDK_VERSION,
+            'json_format' => self::JSON_FORMAT
+        ];
+        $params = array_merge($params, $public_params);
+        $url = 'http://api.geetest.com/validate.php';
+        $res = get_curl($url, http_build_query($params));
+        $arr = json_decode($res, true);
+        if($arr && isset($arr['seccode'])){
+            if($arr['seccode'] == md5($seccode)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     private function check_validate($challenge, $validate) {
         if (strlen($validate) != 32) {
             return false;
         }
-        if (md5($this->private_key . 'geetest' . $challenge) != $validate) {
+        if (md5($this->geetest_key . 'geetest' . $challenge) != $validate) {
             return false;
         }
-
         return true;
     }
 
-    /**
-     * GET 请求
-     *
-     * @param $url
-     * @return mixed|string
-     */
-    private function send_request($url) {
-
-        if (function_exists('curl_exec')) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, self::$connectTimeout);
-            curl_setopt($ch, CURLOPT_TIMEOUT, self::$socketTimeout);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $curl_errno = curl_errno($ch);
-            $data = curl_exec($ch);
-            curl_close($ch);
-            if ($curl_errno >0) {
-                return 0;
-            }else{
-                return $data;
-            }
-        } else {
-            $opts    = array(
-                'http' => array(
-                    'method'  => "GET",
-                    'timeout' => self::$connectTimeout + self::$socketTimeout,
-                )
-            );
-            $context = stream_context_create($opts);
-            $data    = @file_get_contents($url, false, $context);
-            if($data){ 
-                return $data;
-            }else{ 
-                return 0;
-            } 
+    private function success_validate_demo($challenge, $validate, $seccode) {
+        $params = [
+            'geetest_challenge' => $challenge,
+            'geetest_validate' => $validate,
+            'geetest_seccode' => $seccode
+        ];
+        $url = 'https://www.geetest.com/demo/gt/validate-fullpage';
+        $referer = 'https://www.geetest.com/demo/slide-popup.html';
+        $data = get_curl($url, http_build_query($params), $referer);
+        $arr = json_decode($data, true);
+        if($arr && $arr['status'] == 'success'){
+            return true;
         }
+        return false;
     }
 
-    /**
-     *
-     * @param       $url
-     * @param array $postdata
-     * @return mixed|string
-     */
-    private function post_request($url, $postdata = '') {
-        if (!$postdata) {
+    //异常流程下（即验证初始化失败，宕机模式），二次验证
+    public function fail_validate($challenge, $validate, $seccode) {
+        if(md5($challenge) == $validate){
+            return true;
+        }else{
             return false;
         }
-
-        $data = http_build_query($postdata);
-        if (function_exists('curl_exec')) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, self::$connectTimeout);
-            curl_setopt($ch, CURLOPT_TIMEOUT, self::$socketTimeout);
-
-            //不可能执行到的代码
-            if (!$postdata) {
-                curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-            } else {
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            }
-            $data = curl_exec($ch);
-
-            if (curl_errno($ch)) {
-                $err = sprintf("curl[%s] error[%s]", $url, curl_errno($ch) . ':' . curl_error($ch));
-                $this->triggerError($err);
-            }
-
-            curl_close($ch);
-        } else {
-            if ($postdata) {
-                $opts    = array(
-                    'http' => array(
-                        'method'  => 'POST',
-                        'header'  => "Content-type: application/x-www-form-urlencoded\r\n" . "Content-Length: " . strlen($data) . "\r\n",
-                        'content' => $data,
-                        'timeout' => self::$connectTimeout + self::$socketTimeout
-                    )
-                );
-                $context = stream_context_create($opts);
-                $data    = file_get_contents($url, false, $context);
-            }
-        }
-
-        return $data;
-    }
-
-
-    
-    /**
-     * @param $err
-     */
-    private function triggerError($err) {
-        trigger_error($err);
     }
 }

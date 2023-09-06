@@ -32,12 +32,12 @@ $jump_url = $siteurl.'pay/return/'.$trade_no.'/';
 </head>
 <body>
 <script>
-var mchData = {action:'jumpOut', jumpOutUrl:'<?php echo $jump_url?>'};
-var postData = JSON.stringify(mchData);
-parent.postMessage(postData,'https://payapp.weixin.qq.com');
-mchData = {action:'onIframeReady', displayStyle:'SHOW_OFFICIAL_PAGE'};
-postData = JSON.stringify(mchData);
-parent.postMessage(postData,'https://payapp.weixin.qq.com');
+    var mchData = {action:'jumpOut', jumpOutUrl:'<?php echo $jump_url?>'};
+    var postData = JSON.stringify(mchData);
+    parent.postMessage(postData,'https://payapp.weixin.qq.com');
+    mchData = {action:'onIframeReady', displayStyle:'SHOW_OFFICIAL_PAGE'};
+    postData = JSON.stringify(mchData);
+    parent.postMessage(postData,'https://payapp.weixin.qq.com');
 </script>
 </body>
 </html>

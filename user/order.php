@@ -33,7 +33,7 @@ unset($rs);
 <?php }?>
 	<div class="panel panel-default">
 		<div class="panel-heading font-bold">
-			<h3 class="panel-title">订单记录<a href="javascript:searchClear()" class="btn btn-default btn-xs pull-right" title="刷新订单列表"><i class="fa fa-refresh"></i></a></h3>
+			<h3 class="panel-title">订单记录</h3>
 		</div>
 
 	    <form onsubmit="return searchSubmit()" method="GET" class="form-inline" id="searchToolbar">
@@ -62,6 +62,7 @@ unset($rs);
 				<select name="dstatus" class="form-control"><option value="-1">全部状态</option><option value="0">状态未支付</option><option value="1">状态已支付</option><option value="2">状态已退款</option><option value="3">状态已冻结</option></select>
 			</div>
 			<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i> 搜索</button>
+			<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-refresh"></i> 重置</a>
 		</form>
       <table id="listTable">
 	  </table>
@@ -133,6 +134,8 @@ $(document).ready(function(){
 						return '<font color=red>已退款</font>';
 					}else if(value == '3'){
 						return '<font color=red>已冻结</font>';
+					}else if(value == '4'){
+						return '<font color=orange>预授权</font>';
 					}else{
 						return '<font color=blue>未支付</font>';
 					}

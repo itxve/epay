@@ -28,10 +28,10 @@ if(isset($_GET['act']) && $_GET['act']=='login'){
 			$expiretime=time()+604800;
 			$token=authcode("{$uid}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
 			setcookie("user_token", $token, time() + 604800);
-			$DB->exec("update `pre_user` set `lasttime` ='$date' where `uid`='$uid'");
+			$DB->exec("update `pre_user` set `lasttime`=NOW() where `uid`='$uid'");
 			$result=array("code"=>0,"msg"=>"登录成功！正在跳转到用户中心","url"=>"./");
 		}elseif($islogin2==1){
-			$sds=$DB->exec("update `pre_user` set `wx_uid` ='$openId' where `uid`='$uid'");
+			$sds=$DB->exec("update `pre_user` set `wx_uid`='$openId' where `uid`='$uid'");
 			$result=array("code"=>0,"msg"=>"已成功绑定微信账号！","url"=>"./editinfo.php");
 		}else{
 			$_SESSION['Oauth_wx_uid']=$openId;
@@ -54,7 +54,7 @@ if(isset($_GET['bind'])){
 }
 
 if($islogin2==1 && isset($_GET['unbind'])){
-	$DB->exec("update `pre_user` set `wx_uid` =NULL where `uid`='$uid'");
+	$DB->exec("update `pre_user` set `wx_uid`=NULL where `uid`='$uid'");
 	@header('Content-Type: text/html; charset=UTF-8');
 	exit("<script language='javascript'>alert('您已成功解绑微信账号！');window.location.href='./editinfo.php';</script>");
 }
@@ -81,7 +81,7 @@ $_SESSION['openid'] = $openId;
 	if($userrow){
 		$uid=$userrow['uid'];
 		$key=$userrow['key'];
-		$DB->exec("insert into `pre_log` (`uid`,`type`,`date`,`ip`,`city`) values ('".$uid."','微信快捷登录','".$date."','".$clientip."','".$city."')");
+		$DB->insert('log', ['uid'=>$uid, 'type'=>'微信快捷登录', 'date'=>'NOW()', 'ip'=>$clientip, 'city'=>$city]);
 		$session=md5($uid.$key.$password_hash);
 		$expiretime=time()+604800;
 		$token=authcode("{$uid}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
@@ -89,7 +89,7 @@ $_SESSION['openid'] = $openId;
 		@header('Content-Type: text/html; charset=UTF-8');
 		exit("<script language='javascript'>window.location.href='./{$redirect_url}';</script>");
 	}elseif($islogin2==1){
-		$sds=$DB->exec("update `pre_user` set `wx_uid` ='$openId' where `uid`='$uid'");
+		$sds=$DB->exec("update `pre_user` set `wx_uid`='$openId' where `uid`='$uid'");
 		@header('Content-Type: text/html; charset=UTF-8');
 		exit("<script language='javascript'>alert('已成功绑定微信账号！');window.location.href='./editinfo.php';</script>");
 	}else{

@@ -27,7 +27,7 @@ if(isset($_GET['act']) && $_GET['act']=='login'){
 			$expiretime=time()+604800;
 			$token=authcode("{$uid}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
 			setcookie("user_token", $token, time() + 604800);
-			$DB->exec("update `pre_user` set `lasttime` ='$date' where `uid`='$uid'");
+			$DB->exec("update `pre_user` set `lasttime`=NOW() where `uid`='$uid'");
 			$result=array("code"=>0,"msg"=>"登录成功！正在跳转到用户中心","url"=>"./");
 		}elseif($islogin2==1){
 			$sds=$DB->exec("update `pre_user` set `alipay_uid`='$alipay_uid' where `uid`='$uid'");
@@ -78,7 +78,7 @@ if(isset($_GET['auth_code'])){
 			@header('Content-Type: text/html; charset=UTF-8');
 			exit("<script language='javascript'>alert('当前支付宝已绑定商户ID:{$uid}，请勿重复绑定！');window.location.href='./editinfo.php';</script>");
 		}
-		$DB->exec("insert into `pre_log` (`uid`,`type`,`date`,`ip`,`city`) values ('".$uid."','支付宝快捷登录','".$date."','".$clientip."','".$city."')");
+		$DB->insert('log', ['uid'=>$uid, 'type'=>'支付宝快捷登录', 'date'=>'NOW()', 'ip'=>$clientip, 'city'=>$city]);
 		$session=md5($uid.$key.$password_hash);
 		$expiretime=time()+604800;
 		$token=authcode("{$uid}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
@@ -86,7 +86,7 @@ if(isset($_GET['auth_code'])){
 		@header('Content-Type: text/html; charset=UTF-8');
 		exit("<script language='javascript'>window.location.href='./';</script>");
 	}elseif($islogin2==1){
-		$sds=$DB->exec("update `pre_user` set `alipay_uid` ='$user_id' where `uid`='$uid'");
+		$sds=$DB->exec("update `pre_user` set `alipay_uid`='$user_id' where `uid`='$uid'");
 		@header('Content-Type: text/html; charset=UTF-8');
 		exit("<script language='javascript'>alert('已成功绑定支付宝账号！');window.location.href='./editinfo.php';</script>");
 	}else{
@@ -95,7 +95,7 @@ if(isset($_GET['auth_code'])){
 	}
 
 }elseif($islogin2==1 && isset($_GET['unbind'])){
-	$DB->exec("update `pre_user` set `alipay_uid` =NULL where `uid`='$uid'");
+	$DB->exec("update `pre_user` set `alipay_uid`=NULL where `uid`='$uid'");
 	@header('Content-Type: text/html; charset=UTF-8');
 	exit("<script language='javascript'>alert('您已成功解绑支付宝账号！');window.location.href='./editinfo.php';</script>");
 }elseif($islogin2==1 && !isset($_GET['bind']) && !isset($_GET['state'])){

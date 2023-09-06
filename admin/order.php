@@ -52,7 +52,7 @@ unset($rs);
 	<input type="text" id="endtime" name="endtime" class="form-control dates" placeholder="结束日期" autocomplete="off" title="留空则不限时间范围">
   </div>
   <div class="form-group">
-	<select name="dstatus" class="form-control"><option value="-1">全部状态</option><option value="0">状态未支付</option><option value="1">状态已支付</option><option value="2">状态已退款</option><option value="3">状态已冻结</option></select>
+	<select name="dstatus" class="form-control"><option value="-1">全部状态</option><option value="0">状态未支付</option><option value="1">状态已支付</option><option value="2">状态已退款</option><option value="3">状态已冻结</option><option value="4">状态预授权</option></select>
   </div>
   <button type="submit" class="btn btn-primary">&nbsp;搜索&nbsp;</button>
   <a href="javascript:searchClear()" class="btn btn-default" title="刷新订单列表"><i class="fa fa-refresh"></i></a>
@@ -143,15 +143,25 @@ $(document).ready(function(){
 						text = '<font color=red>已退款</font>';
 					}else if(value == '3'){
 						text = '<font color=red>已冻结</font>';
+					}else if(value == '4'){
+						text = '<font color=orange>预授权</font>';
 					}else{
 						text = '<font color=blue>未支付</font>';
 					}
-					if(row.settle == '1'){
-						text += '<br/><font color=#8c8f93>待结算</font>';
-					}else if(row.settle == '2'){
-						text += '<br/><font color=#37db3c>结算成功</font>';
-					}else if(row.settle == '3'){
-						text += '<br/><font color=#ed6565>结算失败</font>';
+					if(row.plugin=='alipayd'){
+						if(row.settle == '1'){
+							text += '<br/><font color=#8c8f93>待结算</font>';
+						}else if(row.settle == '2'){
+							text += '<br/><font color=#37db3c>结算成功</font>';
+						}else if(row.settle == '3'){
+							text += '<br/><font color=#ed6565>结算失败</font>';
+						}
+					}else if(row.plugin=='alipayrp'){
+						if(row.settle == '1'){
+							text += '<br/><font color=#8c8f93>待转账</font>';
+						}else if(row.settle == '3'){
+							text += '<br/><font color=#ed6565>转账失败</font>';
+						}
 					}
 					return text;
 				}
@@ -161,8 +171,12 @@ $(document).ready(function(){
 				title: '操作',
 				formatter: function(value, row, index) {
 					let html = '<div class="btn-group" role="group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">操作订单 <span class="caret"></span></button><ul class="dropdown-menu">';
-					if(row.settle=='1'||row.settle=='3'){
+					if(row.plugin=='alipayd' && (row.settle=='1'||row.settle=='3')){
 						html += '<li><a href="javascript:alipaydSettle(\''+row.trade_no+'\')">确认结算</a></li>';
+					}
+					if(row.plugin=='alipayrp' && (row.settle=='1'||row.settle=='3')){
+						html += '<li><a href="javascript:alipayRedPacketTansfer(\''+row.trade_no+'\')">红包打款重试</a></li>';
+						html += '<li><a href="javascript:alipayRedPacketRefund(\''+row.trade_no+'\')">资金退回</a></li>';
 					}
 					if(value == '1'){
 						html+= '<li><a href="javascript:setStatus(\''+row.trade_no+'\', 0)">改未完成</a></li><li><a href="javascript:apirefund(\''+row.trade_no+'\')">API退款</a></li><li><a href="javascript:refund(\''+row.trade_no+'\')">手动退款</a></li><li><a href="javascript:freeze(\''+row.trade_no+'\')">冻结订单</a></li><li role="separator" class="divider"></li><li><a href="javascript:callnotify(\''+row.trade_no+'\')">重新通知</a></li><li><a href="javascript:setStatus(\''+row.trade_no+'\', 5)">删除订单</a></li>';
@@ -171,6 +185,10 @@ $(document).ready(function(){
 					}else if(value == '3'){
 						html+= '<li><a href="javascript:unfreeze(\''+row.trade_no+'\')">解冻订单</a></li><li role="separator" class="divider"></li><li><a href="javascript:callnotify(\''+row.trade_no+'\')">重新通知</a></li><li><a href="javascript:setStatus(\''+row.trade_no+'\', 5)">删除订单</a></li>';
 					}else{
+						if(value == '4'){
+							html += '<li><a href="javascript:alipayPreAuthPay(\''+row.trade_no+'\')">授权资金支付</a></li>';
+							html += '<li><a href="javascript:alipayUnfreeze(\''+row.trade_no+'\')">授权资金解冻</a></li><li role="separator" class="divider"></li>';
+						}
 						html+= '<li><a href="javascript:setStatus(\''+row.trade_no+'\', 1)">改已完成</a></li><li role="separator" class="divider"></li><li><a href="javascript:fillorder(\''+row.trade_no+'\')">手动补单</a></li><li><a href="javascript:setStatus(\''+row.trade_no+'\', 5)">删除订单</a></li>';
 					}
 					html += '</ul></div>';
@@ -524,6 +542,48 @@ function alipaydSettle(trade_no) {
 	$.ajax({
 		type : 'POST',
 		url : 'ajax_order.php?act=alipaydSettle',
+		data : {trade_no:trade_no},
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.code == 0){
+				layer.alert(data.msg, {icon:1}, function(){ layer.closeAll();searchSubmit(); });
+			}else{
+				layer.alert(data.msg, {icon:2});
+			}
+		},
+		error:function(data){
+			layer.close(ii);
+			layer.msg('服务器错误');
+		}
+	});
+}
+function alipayPreAuthPay(trade_no) {
+	var ii = layer.load(2, {shade:[0.1,'#fff']});
+	$.ajax({
+		type : 'POST',
+		url : 'ajax_order.php?act=alipayPreAuthPay',
+		data : {trade_no:trade_no},
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.code == 0){
+				layer.alert(data.msg, {icon:1}, function(){ layer.closeAll();searchSubmit(); });
+			}else{
+				layer.alert(data.msg, {icon:2});
+			}
+		},
+		error:function(data){
+			layer.close(ii);
+			layer.msg('服务器错误');
+		}
+	});
+}
+function alipayUnfreeze(trade_no) {
+	var ii = layer.load(2, {shade:[0.1,'#fff']});
+	$.ajax({
+		type : 'POST',
+		url : 'ajax_order.php?act=alipayUnfreeze',
 		data : {trade_no:trade_no},
 		dataType : 'json',
 		success : function(data) {

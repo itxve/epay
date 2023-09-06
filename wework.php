@@ -24,7 +24,7 @@ if($msg['MsgType'] == 'event' && $msg['Event'] == 'kf_msg_or_event'){
     $token = $msg['Token'];
     $wxkfaccount = $DB->find('wxkfaccount', 'id,wid', ['openkfid'=>$kfid]);
     if(!$wxkfaccount) exit('该微信客服账号不存在:'.$kfid);
-    
+
     $wework = new \lib\wechat\WeWorkAPI($wxkfaccount['wid']);
     try{
         $msg_list = $wework->lockGetMsg($kfid, $token);
@@ -46,7 +46,11 @@ if($msg['MsgType'] == 'event' && $msg['Event'] == 'kf_msg_or_event'){
                         $menu_list = [];
                         $menu_list[] = ['type'=>'text', 'text'=>['content'=>'\n','no_newline'=>1]];
                         if($conf['wework_paymsgmode'] == 1){
-                            $menu_list[] = ['type'=>'view', 'view'=>['url'=>$wxkflog['payurl'], 'content'=>$msg_paybtn]];
+                            if(strpos($wxkflog['payurl'], 'wxpay://')!==false){
+                                $menu_list[] = ['type'=>'text', 'text'=>['content'=>$wxkflog['payurl']]];
+                            }else{
+                                $menu_list[] = ['type'=>'view', 'view'=>['url'=>$wxkflog['payurl'], 'content'=>$msg_paybtn]];
+                            }
                         }else{
                             $menu_list[] = ['type'=>'click', 'click'=>['id'=>$scene_param['orderid'], 'content'=>$msg_paybtn]];
                         }
@@ -60,7 +64,7 @@ if($msg['MsgType'] == 'event' && $msg['Event'] == 'kf_msg_or_event'){
                         $tail_content = $conf['wework_remark'];
                         if(!empty($tail_content) && strpos($tail_content, '[qq]')!==false){
                             $order_uid = $DB->findColumn('order', 'uid', ['trade_no' => $scene_param['orderid']]);
-		                    $tail_content = str_replace('[qq]', $DB->findColumn('user', 'qq', ['uid'=>$order_uid]), $tail_content);
+                            $tail_content = str_replace('[qq]', $DB->findColumn('user', 'qq', ['uid'=>$order_uid]), $tail_content);
                         }
                         if(!empty($row['event']['welcome_code'])){
                             $wework->sendWelcomeMenuMsg($row['event']['welcome_code'], $head_content, $menu_list, $tail_content);

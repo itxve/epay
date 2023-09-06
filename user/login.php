@@ -133,6 +133,7 @@ var handlerEmbed = function (captchaObj) {
 			return alert('请完成验证');
 		}
 		$("#captchaform").html('<input type="hidden" name="geetest_challenge" value="'+result.geetest_challenge+'" /><input type="hidden" name="geetest_validate" value="'+result.geetest_validate+'" /><input type="hidden" name="geetest_seccode" value="'+result.geetest_seccode+'" />');
+		$.captchaObj = captchaObj;
 	});
 };
 $(document).ready(function(){
@@ -189,6 +190,7 @@ function submitLogin(type,user,pass){
 				setTimeout(function(){ window.location.href=data.url }, 1000);
 			}else{
 				layer.alert(data.msg, {icon: 2});
+				$.captchaObj.reset();
 			}
 		},
 		error: function (data) {

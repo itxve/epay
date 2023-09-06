@@ -20,7 +20,7 @@ if(isset($_POST['user']) && isset($_POST['pass'])){
 		exit("<script language='javascript'>alert('用户名或密码不正确！');history.go(-1);</script>");
 	}elseif($user==$conf['admin_user'] && $pass==$conf['admin_pwd']) {
 		//$city=get_ip_city($clientip);
-		$DB->exec("insert into `pre_log` (`uid`,`type`,`date`,`ip`,`city`) values (0,'登录后台','".$date."','".$clientip."','".$city."')");
+    $DB->insert('log', ['uid'=>0, 'type'=>'登录后台', 'date'=>'NOW()', 'ip'=>$clientip, 'city'=>$city]);
 		$session=md5($user.$pass.$password_hash);
 		$expiretime=time()+604800;
 		$token=authcode("{$user}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);

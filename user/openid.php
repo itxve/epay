@@ -64,6 +64,14 @@ if($is_alipay){
 		}
 	}elseif(isset($_GET['act']) && $_GET['act']=='app_auth'){
 		$oauth->appOauth($redirect_uri);
+	}elseif(isset($_GET['act']) && $_GET['act']=='app_auth_assign'){
+		[$pc_url, $app_url] = $oauth->appOauthAssign($redirect_uri, ['MOBILEAPP','WEBAPP','PUBLICAPP','TINYAPP','BASEAPP']);
+		if(checkmobile()){
+			header("Location: $app_url");
+		}else{
+			header("Location: $pc_url");
+		}
+		exit;
 	}else{
 		$oauth->oauth($redirect_uri);
 	}

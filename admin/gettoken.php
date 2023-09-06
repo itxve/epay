@@ -88,7 +88,13 @@ $app = isset($_GET['app'])?$_GET['app']:'wechat';
 					<?php foreach($alipay_channel as $channel){echo '<option value="'.$channel['id'].'" '.($channel['id']==$conf['login_alipay']?'selected':'').'>'.$channel['name'].'</option>';} ?>
 				</select>
 			</div>
-			<font color="green">支持alipaysl支付插件，需要先在支付宝应用（第三方应用）的授权回调地址配置好当前域名</font>
+			<font color="green">支持alipaysl支付插件，需要先在支付宝应用（第三方应用）的授权回调地址配置好回调地址</font>
+		</div>
+		<div class="list-group-item">
+			<div class="input-group">
+				<div class="input-group-addon">授权方式</div>
+				<select id="authtype" class="form-control"><option value="0">基础应用授权</option><option value="1">指定应用授权</option></select>
+			</div>
 		</div>
 		<div class="list-group-item">
 			<div class="input-group">
@@ -129,11 +135,16 @@ $(document).ready(function(){
 		var channel = $("#channel").val();
 		if(channel != null){
 			if(apptype == 'wechat'){
-				var geturl = siteurl+'user/openid.php?wechatid='+$("#channel").val();
+				var geturl = siteurl+'user/openid.php?wechatid='+channel;
 			}else if(apptype == 'alipayuid'){
-				var geturl = siteurl+'user/openid.php?channel='+$("#channel").val();
+				var geturl = siteurl+'user/openid.php?channel='+channel;
 			}else if(apptype == 'apptoken'){
-				var geturl = siteurl+'user/openid.php?act=app_auth&channel='+$("#channel").val();
+				var authtype = $("#authtype").val();
+				if(authtype == '1'){
+					var geturl = siteurl+'user/openid.php?act=app_auth_assign&channel='+channel;
+				}else{
+					var geturl = siteurl+'user/openid.php?act=app_auth&channel='+channel;
+				}
 			}
 			$("#geturl").val(geturl);
 			$(".copy-btn").attr('data-clipboard-text', geturl);
@@ -151,5 +162,8 @@ $(document).ready(function(){
 		}
 	});
 	$("#channel").change();
+	$("#authtype").change(function(){
+		$("#channel").change();
+	});
 });
 </script>

@@ -24,11 +24,11 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
       <div class="panel panel-info">
         <div class="panel-heading"><h3 class="panel-title" id="title">后台管理首页</h3></div>
           <ul class="list-group">
-            <li class="list-group-item"><span class="glyphicon glyphicon-stats"></span> <b>订单总数：</b><span id="count1"></span></li>
-			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>商户数量：</b><span id="count2"></span></li>
-			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>总计余额：</b><span id="usermoney"></span>元（自动更新）</li>
-			<li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>结算总额：</b><span id="settlemoney"></span>元（自动更新）</li>
-            <li class="list-group-item"><span class="glyphicon glyphicon-time"></span> <b>现在时间：</b> <span id="date"><?=$date?></span></li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-stats"></span> <b>订单总数：</b><span id="count1"></span></li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>商户数量：</b><span id="count2"></span></li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>总计余额：</b><span id="usermoney"></span>元（自动更新）</li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>结算总额：</b><span id="settlemoney"></span>元（自动更新）</li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-time"></span> <b>现在时间：</b> <span id="date"><?=$date?></span></li>
 			</li>
           </ul>
       </div>

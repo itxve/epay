@@ -253,7 +253,7 @@ class HnaPayApi
 
     //付款到银行
     public function transfer($params, $trade_no){
-        $apiurl = 'https://gateway.hnapay.com/exp/refund.do';
+        $apiurl = 'https://gateway.hnapay.com/website/singlePay.do';
         $param = [
 			'version' => "2.1",
 			'tranCode' => "SGP01",
@@ -279,6 +279,13 @@ class HnaPayApi
         }else{
             throw new Exception('返回数据解析失败');
         }
+    }
+
+    //付款回调验签
+    public function transferVerify($param){
+        if(!$param['signValue']) return false;
+        $sign_order = ['version', 'tranCode', 'merOrderId', 'merId', 'charset', 'signType', 'resultCode', 'hnapayOrderId'];
+        return $this->verifySign($param, $sign_order, $param['signValue']);
     }
 
     

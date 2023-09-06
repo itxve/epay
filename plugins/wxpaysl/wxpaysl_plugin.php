@@ -86,6 +86,8 @@ class wxpaysl_plugin
 				return ['type'=>'jump','url'=>$urlpre.'pay/jspay/'.TRADE_NO.'/?d=1'];
 			}elseif(in_array('4',$channel['apptype'])){
 				return self::wap();
+			}elseif(in_array('1',$channel['apptype']) && $conf['wework_payopen'] == 1){
+				return ['type'=>'jump','url'=>'/pay/qrcode/'.TRADE_NO.'/'];
 			}else{
 				return ['type'=>'jump','url'=>$siteurl.'pay/submit/'.TRADE_NO.'/'];
 			}

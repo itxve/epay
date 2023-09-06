@@ -1,7 +1,6 @@
 <?php
 if(!defined('IN_CRONLITE'))exit();
 require INDEX_ROOT.'head.php';
-$paytype = $DB->getAll("SELECT * FROM pre_type WHERE status=1 ORDER BY id ASC");
 ?>
 <style type="text/css">
 body{color:#000;}header { position: relative; }

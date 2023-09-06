@@ -144,7 +144,7 @@ $group=\lib\Channel::getGroup($row['gid']);
 <div class="form-group">
 <label>商品名称自定义:</label><br>
 <input type="text" class="form-control" name="ordername" value="<?php echo $row['ordername']?>" placeholder="默认以系统设置里面的为准">
-<font color="green">支持变量值：[name]原商品名称，[order]支付订单号，[sorder]商户订单号，[time]时间戳，[qq]当前商户的联系QQ</font>
+<font color="green">支持变量值：[name]原商品名称，[order]支付订单号，[time]时间戳，[qq]当前商户的联系QQ</font>
 </div>
 <h4><font color="blue">结算信息</font></h4>
 <div class="form-group">

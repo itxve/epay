@@ -392,6 +392,7 @@ function delUser(uid) {
 		url : 'ajax_user.php?act=delUser&uid='+uid,
 		dataType : 'json',
 		success : function(data) {
+			layer.close(ii);
 			if(data.code == 0){
 				layer.closeAll();
 				searchSubmit();

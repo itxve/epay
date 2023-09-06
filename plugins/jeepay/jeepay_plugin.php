@@ -8,6 +8,7 @@ class jeepay_plugin
 		'author'      => 'Jeepay', //支付插件作者
 		'link'        => 'http://www.xxpay.org/', //支付插件作者链接
 		'types'       => ['alipay','wxpay','bank'], //支付插件支持的支付方式，可选的有alipay,qqpay,wxpay,bank
+		'transtypes'  => ['alipay','wxpay','bank'], //支付插件支持的转账方式，可选的有alipay,qqpay,wxpay,bank
 		'inputs' => [ //支付插件要求传入的参数以及参数显示名称，可选的有appid,appkey,appsecret,appurl,appmchid
 			'appurl' => [
 				'name' => '接口地址',
@@ -419,8 +420,8 @@ class jeepay_plugin
 
 		if($sign===$arr["sign"]){
 			if($arr['state'] == '2'){
-				$out_trade_no = daddslashes($arr['mchOrderNo']);
-				$api_trade_no = daddslashes($arr['payOrderId']);
+				$out_trade_no = $arr['mchOrderNo'];
+				$api_trade_no = $arr['payOrderId'];
 				$money = $arr['amount'];
 
 				if ($out_trade_no == TRADE_NO && $money==strval($order['realmoney']*100)) {
@@ -498,9 +499,10 @@ class jeepay_plugin
 	}
 
 	//转账
-	static public function trasfer($channel, $type, $out_trade_no, $payee_account, $payee_real_name, $money){
+	static public function transfer($channel, $bizParam){
 		global $clientip, $conf;
-		if(empty($type) || empty($out_trade_no) || empty($payee_account))exit();
+		if(empty($channel) || empty($bizParam))exit();
+		$type = $bizParam['type'];
 		if($type == 'alipay'){
 			$entryType = 'ALIPAY_CASH';
 		}elseif($type == 'wxpay'){
@@ -513,15 +515,16 @@ class jeepay_plugin
 		$param = [
 			'mchNo' => $channel['appmchid'],
 			'appId' => $channel['appid'],
-			'mchOrderNo' => $out_trade_no,
+			'mchOrderNo' => $bizParam['out_biz_no'],
 			'ifCode' => $type,
 			'entryType' => $entryType,
-			'amount' => round($money*100),
+			'amount' => round($bizParam['money']*100),
 			'currency' => 'cny',
-			'accountNo' => $payee_account,
-			'accountName' => $payee_real_name,
+			'accountNo' => $bizParam['payee_account'],
+			'accountName' => $bizParam['payee_real_name'],
 			'clientIp' => $clientip,
-			'transferDesc' => $conf['transfer_desc'],
+			'transferDesc' => $bizParam['transfer_desc'],
+			'notifyUrl' => $conf['localurl'].'pay/transfernotify/'.$channel['id'].'/',
 			'reqTime' => self::getMillisecond(),
 			'version' => '1.0',
 			'signType' => 'MD5',
@@ -535,13 +538,87 @@ class jeepay_plugin
 
 		if (isset($result['code']) && $result['code'] == 0) {
 			if($result['data']['errMsg']){
-				return ['code'=>0, 'ret'=>0, 'msg'=>'['.$result['data']['errCode'].']'.$result['data']['errMsg'], 'sub_code'=>$result['data']['errCode'], 'sub_msg'=>$result['data']['errMsg']];
+				return ['code'=>-1, 'errcode'=>$result['data']['errCode'], 'msg'=>'['.$result['data']['errCode'].']'.$result['data']['errMsg']];
 			}elseif($result['data']['error']){
-				return ['code'=>0, 'ret'=>0, 'msg'=>$result['data']['error'], 'sub_msg'=>$result['data']['error']];
+				return ['code'=>-1, 'msg'=>$result['data']['error']];
 			}
-			return ['code'=>0, 'ret'=>1, 'orderid'=>$result['data']['channelOrderNo'], 'paydate'=>date('Y-m-d H:i:s')];
+			if($result['data']['state'] == 2){
+				$status = 1;
+			}else{
+				$status = 0;
+			}
+			return ['code'=>0, 'status'=>$status, 'orderid'=>$result['data']['transferId'], 'paydate'=>date('Y-m-d H:i:s')];
 		} else {
 			return ['code'=>-1, 'msg'=>$result['msg']?$result['msg']:'返回数据解析失败'];
+		}
+	}
+
+	//转账查询
+	static public function transfer_query($channel, $bizParam){
+		if(empty($channel) || empty($bizParam))exit();
+
+		$apiurl = $channel['appurl'].'api/transfer/query';
+		$param = [
+			'mchNo' => $channel['appmchid'],
+			'appId' => $channel['appid'],
+			'transferId' => $bizParam['orderid'],
+			'reqTime' => self::getMillisecond(),
+			'version' => '1.0',
+			'signType' => 'MD5',
+		];
+
+		$param['sign'] = self::make_sign($param, $channel['appkey']);
+
+		$data = get_curl($apiurl, json_encode($param), 0, 0, 0, 0, 0, ['Content-Type: application/json']);
+
+		$result = json_decode($data, true);
+
+		if (isset($result['code']) && $result['code'] == 0) {
+			if($result['data']['state'] == 2){
+				$status = 1;
+			}elseif($result['data']['state'] == 1){
+				$status = 0;
+			}else{
+				$status = 2;
+			}
+			$paydate = date('Y-m-d H:i:s', intval($result['data']['successTime']/1000));
+			if($result['data']['errCode'] && $result['data']['errMsg']){
+				$errmsg = '['.$result['data']['errCode'].']'.$result['data']['errMsg'];
+			}
+			return ['code'=>0, 'status'=>$status, 'amount'=>$result['data']['amount'], 'paydate'=>$paydate, 'errmsg'=>$errmsg];
+		} else {
+			return ['code'=>-1, 'msg'=>$result['msg']?$result['msg']:'返回数据解析失败'];
+		}
+	}
+
+	static public function transfernotify(){
+		global $channel;
+
+		if(isset($_POST['sign'])){
+			$arr = $_POST;
+		}elseif(isset($_GET['sign'])){
+			$arr = $_GET;
+		}else{
+			return ['type'=>'html','data'=>'no data'];
+		}
+
+		$sign = self::make_sign($arr,$channel['appkey']);
+
+		if($sign===$arr["sign"]){
+			if($arr['state'] == 2){
+				$status = 1;
+			}elseif($arr['state'] == 1){
+				$status = 0;
+			}else{
+				$status = 2;
+			}
+			if($arr['errCode'] && $arr['errMsg']){
+				$errmsg = '['.$arr['errCode'].']'.$arr['errMsg'];
+			}
+			processTransfer($arr['mchOrderNo'], $status, $errmsg);
+			return ['type'=>'html','data'=>'success'];
+		}else{
+			return ['type'=>'html','data'=>'fail'];
 		}
 	}
 

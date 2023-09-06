@@ -25,6 +25,8 @@ if(isset($_GET['ok']) && isset($_GET['trade_no'])){
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 	<title><?php echo $conf['sitename']?> - 测试支付</title>
     <link href="<?php echo $cdnpublic?>twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" href="./assets/css/captcha.css" type="text/css" />
+	<style>.form-group{margin-bottom:18px} #captcha{margin: auto;margin-bottom:16px}</style>
 </head>
 <div class="container">
 <div class="col-xs-12 col-sm-10 col-lg-8 center-block" style="float: none;">
@@ -36,25 +38,36 @@ if(isset($_GET['ok']) && isset($_GET['trade_no'])){
 
 <form name="alipayment">
 <input type="hidden" name="csrf_token" value="<?php echo $csrf_token?>">
-<div class="input-group">
+<div class="form-group"><div class="input-group">
 <span class="input-group-addon"><span class="glyphicon glyphicon-barcode"></span></span>
 <input class="form-control" placeholder="商户订单号" value="<?php echo $trade_no?>" name="trade_no" type="text" disabled="">
-</div>
-<br>
-<div class="input-group">
+</div></div>
+<div class="form-group"><div class="input-group">
 <span class="input-group-addon"><span class="glyphicon glyphicon-shopping-cart"></span></span>
 <input class="form-control" placeholder="商品名称" value="支付测试" name="name" type="text" disabled="" >
-</div>
-<br>
-<div class="input-group">
+</div></div>
+<div class="form-group"><div class="input-group">
 <span class="input-group-addon"><span class="glyphicon glyphicon-yen"></span></span>
 <input class="form-control" placeholder="付款金额" value="<?php echo $money?>" name="money" type="text" <?php echo isset($_GET['ok'])?'disabled=""':'required=""'?>>	        
-</div>        			
-<br>
+</div></div>
 <center>
 <?php if(isset($_GET['ok'])){?>
 <div class="alert alert-success"><i class="glyphicon glyphicon-ok-circle"></i>&nbsp;订单已支付成功！</div>
 <?php }else{?>
+<?php if($conf['captcha_open_test']==1){?>
+	<div class="list-group-item" id="captcha"><div id="captcha_text">
+		正在加载验证码
+	</div>
+	<div id="captcha_wait">
+		<div class="loading">
+			<div class="loading-dot"></div>
+			<div class="loading-dot"></div>
+			<div class="loading-dot"></div>
+			<div class="loading-dot"></div>
+		</div>
+	</div></div>
+	<div id="captchaform"></div>
+<?php }?>
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
 <?php foreach($paytype as $rows){?>
 <div class="btn-group" role="group">
@@ -75,7 +88,22 @@ if(isset($_GET['ok']) && isset($_GET['trade_no'])){
 <script src="<?php echo $cdnpublic?>jquery/3.4.1/jquery.min.js"></script>
 <script src="<?php echo $cdnpublic?>twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <script src="<?php echo $cdnpublic?>layer/3.1.1/layer.min.js"></script>
+<script src="//static.geetest.com/static/tools/gt.js"></script>
 <script>
+var captcha_open = 0;
+var handlerEmbed = function (captchaObj) {
+	captchaObj.appendTo('#captcha');
+	captchaObj.onReady(function () {
+		$("#captcha_wait").hide();
+	}).onSuccess(function () {
+		var result = captchaObj.getValidate();
+		if (!result) {
+			return alert('请完成验证');
+		}
+		$("#captchaform").html('<input type="hidden" name="geetest_challenge" value="'+result.geetest_challenge+'" /><input type="hidden" name="geetest_validate" value="'+result.geetest_validate+'" /><input type="hidden" name="geetest_seccode" value="'+result.geetest_seccode+'" />');
+		$.captchaObj = captchaObj;
+	});
+};
 function submitPay(obj){
 	var csrf_token=$("input[name='csrf_token']").val();
 	var money=$("input[name='money']").val();
@@ -84,11 +112,21 @@ function submitPay(obj){
 		layer.alert("金额不能为空");
 		return false;
 	}
+	var data = {money:money, typeid:typeid, csrf_token:csrf_token};
+	if(captcha_open == 1){
+		var geetest_challenge = $("input[name='geetest_challenge']").val();
+		var geetest_validate = $("input[name='geetest_validate']").val();
+		var geetest_seccode = $("input[name='geetest_seccode']").val();
+		if(geetest_challenge == ""){
+			layer.alert('请先完成滑动验证！'); return false;
+		}
+		var adddata = {geetest_challenge:geetest_challenge, geetest_validate:geetest_validate, geetest_seccode:geetest_seccode};
+	}
 	var ii = layer.load();
 	$.ajax({
 		type: "POST",
 		dataType: "json",
-		data: {money:money, typeid:typeid, csrf_token:csrf_token},
+		data: Object.assign(data, adddata),
 		url: "ajax.php?act=testpay",
 		success: function (data, textStatus) {
 			layer.close(ii);
@@ -96,6 +134,7 @@ function submitPay(obj){
 				window.location.href=data.url;
 			}else{
 				layer.alert(data.msg, {icon: 2});
+				$.captchaObj.reset();
 			}
 		},
 		error: function (data) {
@@ -104,5 +143,27 @@ function submitPay(obj){
 	});
 	return false;
 }
+$(document).ready(function(){
+	if($("#captcha").length>0) captcha_open=1;
+	if(captcha_open==1){
+	$.ajax({
+		url: "./ajax.php?act=captcha&t=" + (new Date()).getTime(),
+		type: "get",
+		dataType: "json",
+		success: function (data) {
+			$('#captcha_text').hide();
+			$('#captcha_wait').show();
+			initGeetest({
+				gt: data.gt,
+				challenge: data.challenge,
+				new_captcha: data.new_captcha,
+				product: "popup",
+				width: "100%",
+				offline: !data.success
+			}, handlerEmbed);
+		}
+	});
+	}
+});
 </script>
 </body>

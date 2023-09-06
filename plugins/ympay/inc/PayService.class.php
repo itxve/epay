@@ -6,7 +6,7 @@ class PayService
 	private $version = '1.0';
 	private $charset = 'utf-8';
 //	private $gateway_url = 'https://api-v5.xgymwl.cn';
-	private $gateway_url = 'https://gateway.jxpays.com/';
+    private $gateway_url = 'https://gateway.jxpays.com/';
 	private $mchid;
 	private $submchid;
 	private $platform_public_key;
