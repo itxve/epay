@@ -245,7 +245,7 @@ switch ($act) {
         } else {
             $key = random(32);
             $paystatus = $conf['user_review'] == 1 ? 2 : 1;
-            $sds = $DB->exec("INSERT INTO `pre_user` (`upid`, `key`, `money`, `email`, `phone`, `addtime`, `pay`, `settle`, `keylogin`, `apply`, `status`) VALUES (:upid, :key, '0.00', :email, :phone, NOW(), :paystatus, 1, 0, 0, 1)", [':upid' => $upid, ':key' => $key, ':email' => $email, ':phone' => $phone, ':paystatus' => $paystatus]);
+            $sds = $DB->exec("INSERT INTO `pre_user` (`upid`, `key`, `money`, `email`, `phone`, `addtime`, `pay`, `settle`, `keylogin`, `apply`, `status`, `ref_uid`) VALUES (:upid, :key, '0.00', :email, :phone, NOW(), :paystatus, 1, 0, 0, 1, :ref_uid)", [':upid' => $upid, ':key' => $key, ':email' => $email, ':phone' => $phone, ':paystatus' => $paystatus, ':ref_uid' => $ref_uid]);
             $uid = $DB->lastInsertId();
             if ($sds) {
                 $pwd = getMd5Pwd($pwd, $uid);

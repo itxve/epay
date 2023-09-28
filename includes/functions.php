@@ -578,6 +578,7 @@ function processOrder($srow,$notify=true){
                 changeUserMoney($srow['uid'], $reducemoney, false, '订单服务费', $srow['trade_no']);
         }else{
             changeUserMoney($srow['uid'], $addmoney, true, '订单收入', $srow['trade_no']);
+            revenueSharing($srow);
         }
         /*if(preg_match('/X(\d+)\!(\d+)X/',$srow['name'],$match)){
             if($match[1] >= 1000 && $match[2] > 0 && $match[2] < 100){
@@ -1048,4 +1049,13 @@ function verify_captcha4(){
         return true;
     }
     return false;
+}
+
+function revenueSharing($row){
+    global $conf, $DB;
+    $ordermoney = $row['getmoney'];
+    $addmoney = round($ordermoney * $conf['commission_rate'], 2);
+    $userrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $row['uid']]);
+    if (!$userrow) return;
+    changeUserMoney($userrow['ref_uid'], $addmoney, true, '下级分成', $row['uid']);
 }

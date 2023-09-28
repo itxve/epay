@@ -104,10 +104,11 @@ $uid=intval($_GET['uid']);
 $row=$DB->getRow("select * from pre_user where uid='$uid' limit 1");
 if(!$row)showmsg('该商户不存在',4);
 $group=\lib\Channel::getGroup($row['gid']);
+
 ?>
 <div class="col-md-12 col-lg-10 center-block" style="float: none;">
 <div class="panel panel-primary">
-<div class="panel-heading"><h3 class="panel-title">修改商户信息 UID:<?php echo $uid?></h3></div>
+<div class="panel-heading"><h3 class="panel-title">修改商户信息 UID:<?php echo $uid?>　<?php if($row['ref_uid'] != 0)echo "上级代理：<a href=\"./ulist.php?column=uid&value=".$row['ref_uid']."\">".$row['ref_uid']."</a>"; ?></h3></div>
 <div class="panel-body">
 <ul class="nav nav-tabs">
 <li align="center" class="active"><a href="#">基本信息</a></li>

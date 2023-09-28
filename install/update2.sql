@@ -245,3 +245,6 @@ ADD COLUMN `transtypes` varchar(50) DEFAULT NULL;
 
 ALTER TABLE `pre_regcode`
 ADD COLUMN `scene` varchar(20) NOT NULL DEFAULT '';
+
+ALTER TABLE `pre_user`
+ADD COLUMN `ref_uid` int(11) NOT NULL DEFAULT '0';

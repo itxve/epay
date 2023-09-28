@@ -348,6 +348,11 @@ $(document).ready(function(){
 <div class="panel-heading"><h3 class="panel-title">支付相关配置</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form-horizontal" role="form">
+      <div class="form-group">
+          <label class="col-sm-3 control-label">商户推广分成比例</label>
+          <div class="col-sm-9"><input type="text" name="commission_rate" value="<?php echo $conf['commission_rate']; ?>" class="form-control"/></div>
+      </div><br/>
+
 	<div class="form-group">
 	  <label class="col-sm-3 control-label">最大支付金额</label>
 	  <div class="col-sm-9"><input type="text" name="pay_maxmoney" value="<?php echo $conf['pay_maxmoney']; ?>" class="form-control"/></div>

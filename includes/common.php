@@ -3,7 +3,7 @@
 error_reporting(E_ERROR | E_PARSE | E_COMPILE_ERROR);
 if (defined('IN_CRONLITE')) return;
 define('VERSION', '3059');
-define('DB_VERSION', '2034');
+define('DB_VERSION', '2035');
 define('IN_CRONLITE', true);
 define('SYSTEM_ROOT', dirname(__FILE__) . '/');
 define('ROOT', dirname(SYSTEM_ROOT) . '/');
@@ -14,6 +14,12 @@ date_default_timezone_set('Asia/Shanghai');
 $date = date("Y-m-d H:i:s");
 
 if (!isset($nosession) || !$nosession) session_start();
+
+if(!$_SESSION['ref_uid']){
+    $_SESSION['ref_uid'] = $_GET['ref'];
+}else{
+    $ref_uid = $_SESSION['ref_uid'];
+}
 
 if (!function_exists("is_https")) {
     function is_https()
