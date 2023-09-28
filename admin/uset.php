@@ -22,7 +22,8 @@ if($conf['settle_alipay'])$settle_select.='<option value="1">支付宝</option>'
 if($conf['settle_wxpay'])$settle_select.='<option value="2">微信</option>';
 if($conf['settle_qqpay'])$settle_select.='<option value="3">QQ钱包</option>';
 if($conf['settle_bank'])$settle_select.='<option value="4">银行卡</option>';
-if($conf['settle_usdt'])$settle_select.='<option value="5">USDT</option>';
+if($conf['settle_usdt'])$settle_select.='<option value="5">USDT-trc20</option>';
+if($conf['settle_bnusdt'])$settle_select.='<option value="6">币安USDT-trc20</option>';
 
 $my=isset($_GET['my'])?$_GET['my']:null;
 

@@ -583,8 +583,12 @@ $("select[name='pay_verify']").change(function(){
 	</div><br/>
 
       <div class="form-group">
-          <label class="col-sm-3 control-label">USDT结算开关</label>
+          <label class="col-sm-3 control-label">USDT-trc20结算开关</label>
           <div class="col-sm-9"><select class="form-control" name="settle_usdt" default="<?php echo $conf['settle_usdt']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+      </div><br/>
+      <div class="form-group">
+          <label class="col-sm-3 control-label">币安USDT-trc20结算开关</label>
+          <div class="col-sm-9"><select class="form-control" name="settle_bnusdt" default="<?php echo $conf['settle_bnusdt']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
       </div><br/>
 
 	<div class="form-group">

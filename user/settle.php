@@ -73,7 +73,9 @@ include './head.php';
                         }else if(value == '4'){
                             typename='银行卡';
                         }else if(value == '5'){
-                            typename='USDT';
+                            typename='USDT-trc20';
+                        }else if(value == '6'){
+                            typename='币安USDT-trc20';
                         }
                         if(row.auto!=1) typename+='<small>[手动]</small>'
                         return typename;
