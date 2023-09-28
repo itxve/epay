@@ -17,6 +17,7 @@ if (!isset($nosession) || !$nosession) session_start();
 
 if(!$_SESSION['ref_uid']){
     $_SESSION['ref_uid'] = $_GET['ref'];
+    $ref_uid = $_SESSION['ref_uid'];
 }else{
     $ref_uid = $_SESSION['ref_uid'];
 }
