@@ -127,10 +127,10 @@ $group=\lib\Channel::getGroup($row['gid']);
 <label>邮箱(登录账号):</label><br>
 <input type="text" class="form-control" name="email" value="<?php echo $row['email']?>" placeholder="可留空">
 </div>
-<div class="form-group">
-<label>商户余额:</label><br>
-<input type="text" class="form-control" name="money" value="<?php echo $row['money']?>" required>
-</div>
+<!--<div class="form-group">-->
+<!--<label>商户余额:</label><br>-->
+<!--<input type="text" class="form-control" name="money" value="--><?php //echo $row['money']?><!--" required>-->
+<!--</div>-->
 <div class="form-group">
 <label>用户组:</label><br>
 <select class="form-control" name="gid" default="<?php echo $row['gid']?>"><?php echo $select?></select>

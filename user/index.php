@@ -236,6 +236,7 @@ if(empty($userrow['pwd'])){
 			公告通知
 		</div>
 		<div class="list-group">
+            <a class="list-group-item"><em class="fa fa-fw fa-volume-up"></em><font color="#ff0000"><?php echo " 今日USDT结算汇率：". $conf['settle_usdt_rate'] . "元。"?></font><span class="text-xs text-muted">&nbsp;-<?php echo date('Y-m-d 00:00:01');?></span></a>
 <?php foreach($list as $row){?>
 			<a class="list-group-item"><em class="fa fa-fw fa-volume-up"></em><font color="<?php echo $row['color']?$row['color']:null?>"><?php echo $row['content']?></font><span class="text-xs text-muted">&nbsp;-<?php echo $row['addtime']?></span></a>
 <?php }?>

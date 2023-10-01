@@ -595,6 +595,10 @@ $("select[name='pay_verify']").change(function(){
           <label class="col-sm-3 control-label">币安USDT-trc20结算开关</label>
           <div class="col-sm-9"><select class="form-control" name="settle_bnusdt" default="<?php echo $conf['settle_bnusdt']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
       </div><br/>
+      <div class="form-group">
+          <label class="col-sm-3 control-label">USDT汇率</label>
+          <div class="col-sm-9"><input type="text" name="settle_usdt_rate" value="<?php echo $conf['settle_usdt_rate']; ?>" class="form-control"/></div>
+      </div><br/>
 
 	<div class="form-group">
 	  <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
