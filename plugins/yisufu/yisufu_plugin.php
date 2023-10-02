@@ -54,7 +54,7 @@ class yisufu_plugin
 
         session_start();
 
-        $apiurl = 'https://api.langhanyun.com/Network/unified.jsp';
+        $apiurl = 'https://openapi.yisufu.cn';
 
         if (empty($channel['appmchid'])) {
             $body = [
