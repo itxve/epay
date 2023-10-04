@@ -1053,7 +1053,7 @@ function verify_captcha4(){
 
 function revenueSharing($row){
     global $conf, $DB;
-    $ordermoney = $row['getmoney'];
+    $ordermoney = $row['money'];
     $addmoney = round($ordermoney * $conf['commission_rate'], 2);
     $userrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $row['uid']]);
     if (!$userrow) return;
