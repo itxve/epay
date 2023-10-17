@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  dgxt:
+    build: .
+    ports:
+      - "9888:80"
+    volumes:
+      - ./data:/var/www/html
+    restart: always
