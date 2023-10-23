@@ -38,7 +38,7 @@ switch ($act) {
 
         foreach ($list as $row){
             if($row['type'] == "5" || $row['type'] == "6"){
-                $row['realmoney'] = $row['realmoney'] . " / " . round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
+                $row['realmoney'] = round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
             }
             $newlist[] = $row;
         }
