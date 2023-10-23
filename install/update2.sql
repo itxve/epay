@@ -248,3 +248,6 @@ ADD COLUMN `scene` varchar(20) NOT NULL DEFAULT '';
 
 ALTER TABLE `pre_user`
 ADD COLUMN `ref_uid` int(11) NOT NULL DEFAULT '0';
+
+ALTER TABLE `pre_user`
+ADD COLUMN `telegram` int(11) NOT NULL DEFAULT '0';

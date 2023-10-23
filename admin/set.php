@@ -1026,6 +1026,24 @@ $("select[name='sms_api']").change(function(){
 });
 </script>
 <?php
+}elseif($mod=='tgbottest'){
+    if(!empty($conf['telegram_api']) && !empty($conf['telegram_key'])){
+        $result = telegramBot_SendMessage("", "Hello, 叼毛 !");
+        if($result)
+            showmsg('消息发送成功！',1);
+        else
+            showmsg('消息发送失败！'.$result,3);
+    }
+    else
+        showmsg('您还未设置Telegram API！',3);
+}elseif($mod=='tgbotset'){
+    $ret = get_curl($conf['telegram_api']."/api/SetBotConfig?token=" . $conf['telegram_key']);
+    $data = json_decode($ret, true);
+    if ($data['code'] == 200){
+        showmsg('Telegram Bot配置已生效！',1);
+    }
+    showmsg('未生效',1);
+
 }elseif($mod=='notice'){
 $errmsg = $CACHE->read('wxtplerrmsg');
 if($errmsg){
@@ -1035,6 +1053,72 @@ if($errmsg){
 ?>
 <style>.wxparam{display: inline;width: 100px; margin: 0 3px;}</style>
 <div class="panel panel-primary">
+    <div class="panel-heading"><h3 class="panel-title">TelegramBot消息推送</h3></div>
+    <div class="panel-body">
+        <?php if($errmsg){?><div class="alert alert-warning">上一次报错信息：<?php echo $errmsg;?></div><?php }?>
+        <form onsubmit="return saveSetting(this)" method="post" class="form-horizontal" role="form">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">机器人总开关</label>
+                <div class="col-sm-10"><select class="form-control" name="telegram_notice" default="<?php echo $conf['telegram_notice']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">EnzoBot API</label>
+                <div class="col-sm-10"><input type="text" name="telegram_api" value="<?php echo $conf['telegram_api']; ?>" class="form-control" placeholder="http://127.0.0.1:3300"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">EnzoBot Key</label>
+                <div class="col-sm-10"><input type="text" name="telegram_key" value="<?php echo $conf['telegram_key']; ?>" class="form-control"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Bot URL</label>
+                <div class="col-sm-10"><input type="text" name="telegram_boturl" value="<?php echo $conf['telegram_boturl']; ?>" class="form-control" placeholder="https://t.me/PaoPayPush_bot"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Bot Token</label>
+                <div class="col-sm-10"><input type="text" name="telegram_bottoken" value="<?php echo $conf['telegram_bottoken']; ?>" class="form-control" placeholder="9999999999:AAFrSHN5Nx********"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Tg API代理</label>
+                <div class="col-sm-10"><input type="text" name="telegram_apiurl" value="<?php echo $conf['telegram_apiurl']; ?>" class="form-control" placeholder="https://api.telegram.org"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">管理员UID</label>
+                <div class="col-sm-10"><input type="text" name="telegram_uid" value="<?php echo $conf['telegram_uid']; ?>" class="form-control" placeholder="Bot管理员userID, 在机器人发送/userid获取。"/>
+                    <a href="set.php?mod=tgbottest">>>>发送测试消息<<<</a></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Start欢迎信息</label>
+                <div class="col-sm-10"><textarea class="form-control" name="telegram_start_message" rows="5" placeholder="Telegram Bot start欢迎信息"><?php echo $conf['telegram_start_message']?></textarea></div>
+            </div><br/>
+
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">交易分析推送时间</label>
+                <div class="col-sm-10"><input type="text" name="telegram_tapushtime" value="<?php echo $conf['telegram_tapushtime']; ?>" class="form-control" placeholder="单位:分"/></div>
+            </div><br/>
+
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
+                    <a href="set.php?mod=tgbotset">>>>修改后点击此处让Bot生效<<<</a>
+                </div><br/>
+            </div>
+        </form>
+    </div>
+    <div class="panel-footer">
+        <span class="glyphicon glyphicon-info-sign"></span>
+        Tg API代理：可以直接使用https://tg-bot.0x23.cf/ 或 https://tgbot.hostport.top, 如果反应慢可以自己用海外服务器搭建Nginx反向代理到 https://api.telegram.org<br/>
+    </div>
+
+
+
+
 <div class="panel-heading"><h3 class="panel-title">微信公众号消息提醒设置</h3></div>
 <div class="panel-body">
 <?php if($errmsg){?><div class="alert alert-warning">上一次报错信息：<?php echo $errmsg;?></div><?php }?>

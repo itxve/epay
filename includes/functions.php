@@ -1059,3 +1059,30 @@ function revenueSharing($row){
     if (!$userrow) return;
     changeUserMoney($userrow['ref_uid'], $addmoney, true, '下级分成', $row['uid']);
 }
+
+function telegramBot_OrderErrorPush($trade_no, $msg){
+    global $conf;
+    if($conf['telegram_notice'] != "1") return false;
+    $data = [
+        "msg" => $msg,
+        "trade_no" => $trade_no, // 订单号
+    ];
+    $param = json_encode($data);
+    $ret = get_curl($conf['telegram_api'] . "/api/OrderErrorPush?token=" . $conf['telegram_key'], $param);
+    $data = json_decode($ret, true);
+    if ($data['code'] == 200){
+        return true;
+    }
+    return false;
+}
+
+function telegramBot_SendMessage($tid, $msg){
+    global $conf;
+    $param = json_encode(['tid' => $tid, 'msg'=>$msg]);
+    $ret = get_curl($conf['telegram_api']."/api/SendMessage?token=" . $conf['telegram_key'], $param);
+    $data = json_decode($ret, true);
+    if ($data['code'] == 200){
+        return true;
+    }
+    return false;
+}

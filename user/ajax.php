@@ -79,7 +79,10 @@ switch ($act) {
             $DB->exec("update `pre_user` set `lasttime`=NOW() where `uid`='$uid'");
             if (empty($userrow['account']) || empty($userrow['username'])) {
                 $result = array("code" => 0, "msg" => "登录成功！正在跳转到收款账号设置", "url" => "./editinfo.php?start=1");
-            } else {
+            }else if(isset($_SESSION['login_jump'])) {
+                $_SESSION['login_jump'] = "";
+                $result = array("code" => 0, "msg" => "登录成功！正在绑定Telegram Bot", "url" => "./editinfo.php");
+            }else {
                 $result = array("code" => 0, "msg" => "登录成功！正在跳转到用户中心", "url" => "./");
             }
             unset($_SESSION['csrf_token']);

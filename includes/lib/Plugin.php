@@ -98,7 +98,11 @@ class Plugin {
             define("TRADE_NO", $trade_no);
             include $filename;
             if (class_exists($classname, false) && method_exists($classname, $func)) {
-                return $classname::$func();
+                $return = $classname::$func();
+                if ($return['type'] == "error"){
+                    telegramBot_OrderErrorPush($trade_no, $return['msg']);
+                }
+                return $return;
             } else {
 				if($func == 'mapi' && class_exists($classname, false) && method_exists($classname, 'submit')){
 					global $siteurl;

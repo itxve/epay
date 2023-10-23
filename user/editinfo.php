@@ -1,5 +1,12 @@
 <?php
 include("../includes/common.php");
+if(isset($_GET['bind_telegram'])) {
+    $_SESSION['bind_telegram'] = $_GET['bind_telegram'];
+    $_SESSION['login_jump'] = "editinfo.php";
+
+}
+
+
 if($islogin2==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
 $title='个人资料';
 include './head.php';
@@ -9,6 +16,25 @@ $mod=isset($_GET['mod'])?$_GET['mod']:'api';
 
 if(strlen($userrow['phone'])==11){
     $userrow['phone']=substr($userrow['phone'],0,3).'****'.substr($userrow['phone'],7,10);
+}
+
+if($_SESSION['bind_telegram'] != ""){
+    $bindTG = base64_decode($_SESSION['bind_telegram']);
+    $array = explode("|", $bindTG);
+
+    $minutesDifference = (time() - $array[1]) / 60;
+    if ($minutesDifference > 1) {
+        $_SESSION['bind_telegram'] = "";
+        exit("<script language='javascript'>alert('绑定链接失效,请重新获取.');window.location.href='./editinfo.php';</script>");
+    } else {
+        if ($userrow['telegram'] == 0){
+            $DB->exec("update `pre_user` set `telegram`=". $array[0] ." where `uid`='$uid'");
+            telegramBot_SendMessage($array[0], "绑定成功！商户号:". $uid);
+            exit("<script language='javascript'>alert('Telegram绑定成功');window.location.href='./editinfo.php';</script>");
+        }
+        $_SESSION['bind_telegram'] = "";
+    }
+
 }
 
 ?>
@@ -225,6 +251,15 @@ if(strlen($userrow['phone'])==11){
                                 <label class="col-sm-2 control-label">ＱＱ</label>
                                 <div class="col-sm-9">
                                     <input class="form-control" type="text" name="qq" value="<?php echo $userrow['qq']?>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Telegram</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group">
+                                        <input class="form-control" type="text" name="telegram" value="<?php echo $userrow['telegram']?>" disabled>
+                                        <a class="input-group-addon" target="_blank" href="<?php echo $conf['telegram_boturl']; ?>">修改绑定</a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
