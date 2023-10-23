@@ -289,7 +289,7 @@ switch ($act) {
             'settle_id' => intval($_POST['settle_id']),
             'account' => trim($_POST['account']),
             'username' => trim($_POST['username']),
-            'money' => trim($_POST['money']),
+//            'money' => trim($_POST['money']),
             'url' => trim($_POST['url']),
             'email' => trim($_POST['email']),
             'qq' => trim($_POST['qq']),
