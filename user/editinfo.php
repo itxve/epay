@@ -253,6 +253,7 @@ if($_SESSION['bind_telegram'] != ""){
                                     <input class="form-control" type="text" name="qq" value="<?php echo $userrow['qq']?>">
                                 </div>
                             </div>
+                            <?php if($conf['telegram_notice'] == 1){?>
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Telegram</label>
                                 <div class="col-sm-9">
@@ -262,6 +263,7 @@ if($_SESSION['bind_telegram'] != ""){
                                     </div>
                                 </div>
                             </div>
+                            <?php }?>
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">网站域名</label>
                                 <div class="col-sm-9">
