@@ -742,6 +742,19 @@ switch ($act) {
 
         exit(json_encode(['total' => $total, 'rows' => $list]));
         break;
+    case 'affrecordList':
+        $sql = " uid=$uid";
+        $sql .= " AND `type`='下级分成'";
+        if (isset($_POST['kw']) && !empty($_POST['kw'])) {
+            $kw = daddslashes($_POST['kw']);
+            $sql .= " AND `trade_no`='{$kw}'";
+        }
+        $offset = intval($_POST['offset']);
+        $limit = intval($_POST['limit']);
+        $total = $DB->getColumn("SELECT count(*) from pre_record WHERE{$sql}");
+        $list = $DB->getAll("SELECT * FROM pre_record WHERE{$sql} order by id desc limit $offset,$limit");
+        exit(json_encode(['total' => $total, 'rows' => $list]));
+        break;
     case 'settleList':
         $sql = " uid=$uid";
         if (isset($_POST['dstatus']) && $_POST['dstatus'] > -1) {
