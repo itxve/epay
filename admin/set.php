@@ -1093,10 +1093,14 @@ if($errmsg){
             </div><br/>
 
             <div class="form-group">
-                <label class="col-sm-2 control-label">Start欢迎信息</label>
+                <label class="col-sm-2 control-label">/start 信息</label>
                 <div class="col-sm-10"><textarea class="form-control" name="telegram_start_message" rows="5" placeholder="Telegram Bot start欢迎信息"><?php echo $conf['telegram_start_message']?></textarea></div>
             </div><br/>
 
+            <div class="form-group">
+                <label class="col-sm-2 control-label">商户绑定方式</label>
+                <div class="col-sm-10"><select class="form-control" name="telegram_bindtype" default="<?php echo $conf['telegram_bindtype']?>"><option value="0">跳转链接绑定</option><option value="1">发送消息绑定</option></select></div>
+            </div><br/>
 
             <div class="form-group">
                 <label class="col-sm-2 control-label">交易分析推送时间</label>

@@ -86,10 +86,14 @@ switch ($act) {
             } else {
                 $sql = "update pre_settle set status='$status',endtime=NULL where id='$id'";
             }
-            if ($DB->exec($sql) !== false)
+            if ($DB->exec($sql) !== false){
+                if ($status == 3 || $status == 1){
+                    telegramBot_notice("SettleNotice", ["settle_id" => $id]);
+                }
                 exit('{"code":200}');
-            else
+            } else {
                 exit('{"code":400,"msg":"修改记录失败！[' . $DB->error() . ']"}');
+            }
         }
         break;
     case 'opslist':
