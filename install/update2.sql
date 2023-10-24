@@ -250,4 +250,4 @@ ALTER TABLE `pre_user`
 ADD COLUMN `ref_uid` int(11) NOT NULL DEFAULT '0';
 
 ALTER TABLE `pre_user`
-ADD COLUMN `telegram` int(11) NOT NULL DEFAULT '0';
+ADD COLUMN `telegram` varchar(32) DEFAULT '';

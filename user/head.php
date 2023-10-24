@@ -243,8 +243,8 @@ switch($conf['user_style']){
                         <?php if(!empty($conf['qqqun'])){?>
                             <li>
                                 <a href="<?php echo $conf['qqqun']?>" target="blank">
-                                    <i class="fa fa-qq"></i>
-                                    <span>产品QQ群</span>
+                                    <i class="fa fa-users"></i>
+                                    <span>讨论群组</span>
                                 </a>
                             </li>
                         <?php }?>
