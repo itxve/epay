@@ -30,8 +30,10 @@ class alipay_plugin
 			'1' => '电脑网站支付',
 			'2' => '手机网站支付',
 			'3' => '当面付扫码',
-			'4' => 'JS支付',
+			'4' => '当面付JS',
 			'5' => '预授权支付',
+			'6' => 'APP支付',
+			'7' => 'JSAPI支付',
 		],
 		'note' => '<p>选择可用的接口，只能选择已经签约的产品，否则会无法支付！</p><p>如果使用公钥证书模式，需将<font color="red">应用公钥证书、支付宝公钥证书、支付宝根证书</font>3个crt文件放置于<font color="red">/plugins/alipay/cert/</font>文件夹（或<font color="red">/plugins/alipay/cert/应用APPID/</font>文件夹）</p>', //支付密钥填写说明
 		'bindwxmp' => false, //是否支持绑定微信公众号
@@ -100,6 +102,10 @@ class alipay_plugin
 			}
 
 			return ['type'=>'html','data'=>$html];
+		}elseif(in_array('6',$channel['apptype'])){
+			return ['type'=>'jump','url'=>'/pay/apppay/'.TRADE_NO.'/?d=1'];
+		}elseif(in_array('7',$channel['apptype'])){
+			return ['type'=>'jump','url'=>'/pay/jsapipay/'.TRADE_NO.'/?d=1'];
 		}elseif(in_array('5',$channel['apptype'])){
 			return ['type'=>'jump','url'=>'/pay/preauth/'.TRADE_NO.'/?d=1'];
 		}
@@ -165,6 +171,10 @@ class alipay_plugin
 			$code_url = $siteurl.'pay/submit/'.TRADE_NO.'/';
 		}elseif(!in_array('3',$channel['apptype']) && in_array('4',$channel['apptype'])){
 			$code_url = $siteurl.'pay/jspay/'.TRADE_NO.'/';
+		}elseif(!in_array('3',$channel['apptype']) && in_array('6',$channel['apptype'])){
+			$code_url = $siteurl.'pay/apppay/'.TRADE_NO.'/';
+		}elseif(!in_array('3',$channel['apptype']) && in_array('7',$channel['apptype'])){
+			$code_url = $siteurl.'pay/jsapipay/'.TRADE_NO.'/';
 		}elseif(!in_array('3',$channel['apptype']) && in_array('5',$channel['apptype'])){
 			$code_url = $siteurl.'pay/preauth/'.TRADE_NO.'/';
 		}else{
@@ -191,6 +201,33 @@ class alipay_plugin
 		}else{
 			return ['type'=>'qrcode','page'=>'alipay_qrcode','url'=>$code_url];
 		}
+	}
+
+	//APP支付
+	static public function apppay(){
+		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
+
+		$alipay_config = require(PAY_ROOT.'inc/config.php');
+		$alipay_config['notify_url'] = $conf['localurl'].'pay/notify/'.TRADE_NO.'/';
+		$bizContent = [
+			'out_trade_no' => TRADE_NO,
+			'total_amount' => $order['realmoney'],
+			'subject' => $ordername
+		];
+		$bizContent['business_params'] = ['mc_create_trade_ip' => $clientip];
+		try{
+			$aop = new \Alipay\AlipayTradeService($alipay_config);
+			$result = $aop->appPay($bizContent);
+		}catch(Exception $e){
+			return ['type'=>'error','msg'=>'支付宝下单失败！'.$e->getMessage()];
+		}
+		if($_GET['d']=='1'){
+			$redirect_url='data.backurl';
+		}else{
+			$redirect_url='\'/pay/ok/'.TRADE_NO.'/\'';
+		}
+		$code_url = 'alipays://platformapi/startApp?appId=20000125&orderSuffix='.urlencode($result).'#Intent;scheme=alipays;package=com.eg.android.AlipayGphone;end';
+		return ['type'=>'page','page'=>'alipay_h5','data'=>['code_url'=>$code_url, 'redirect_url'=>$redirect_url]];
 	}
 
 	//预授权支付
@@ -222,7 +259,7 @@ class alipay_plugin
 		return ['type'=>'page','page'=>'alipay_h5','data'=>['code_url'=>$code_url, 'redirect_url'=>$redirect_url]];
 	}
 
-	//JS支付
+	//当面付JS支付
 	static public function jspay(){
 		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
 		
@@ -259,6 +296,49 @@ class alipay_plugin
 			$bizContent['buyer_id'] = $openid;
 		}else{
 			$bizContent['buyer_open_id'] = $openid;
+		}
+		$bizContent['business_params'] = ['mc_create_trade_ip' => $clientip];
+		try{
+			$aop = new \Alipay\AlipayTradeService($alipay_config);
+			$result = $aop->jsPay($bizContent);
+		}catch(Exception $e){
+			return ['type'=>'error','msg'=>'支付宝下单失败！'.$e->getMessage()];
+		}
+		$alipay_trade_no = $result['trade_no'];
+
+		if($_GET['d']=='1'){
+			$redirect_url='data.backurl';
+		}else{
+			$redirect_url='\'/pay/ok/'.TRADE_NO.'/\'';
+		}
+		return ['type'=>'page','page'=>'alipay_jspay','data'=>['alipay_trade_no'=>$alipay_trade_no, 'redirect_url'=>$redirect_url]];
+	}
+
+	//JSAPI支付
+	static public function jsapipay(){
+		global $siteurl, $channel, $order, $ordername, $conf, $clientip;
+		
+		if(!isset($_GET['userid'])){
+			$redirect_uri = '/pay/jsapipay/'.TRADE_NO.'/';
+			return ['type'=>'jump','url'=>'/user/oauth.php?state='.urlencode(authcode($redirect_uri, 'ENCODE', SYS_KEY))];
+		}
+		
+		$blocks = checkBlockUser($_GET['userid'], TRADE_NO);
+		if($blocks) return $blocks;
+
+		$alipay_config = require(PAY_ROOT.'inc/config.php');
+		$alipay_config['notify_url'] = $conf['localurl'].'pay/notify/'.TRADE_NO.'/';
+		$bizContent = [
+			'out_trade_no' => TRADE_NO,
+			'total_amount' => $order['realmoney'],
+			'subject' => $ordername,
+			'product_code' => 'JSAPI_PAY',
+			'op_app_id' => $alipay_config['app_id']
+		];
+		if(isset($_GET['usertype']) && $_GET['usertype'] == 'openid'){
+			$bizContent['buyer_open_id'] = $_GET['userid'];
+		}else{
+			$bizContent['buyer_id'] = $_GET['userid'];
 		}
 		$bizContent['business_params'] = ['mc_create_trade_ip' => $clientip];
 		try{
@@ -515,14 +595,21 @@ class alipay_plugin
 		}
 	}
 
-	//支付宝风险交易回调
+	//支付宝应用网关
 	static public function appgw(){
 		global $channel,$DB;
 		$alipay_config = require(PAY_ROOT.'inc/config.php');
 		$aop = new \Alipay\AlipayService($alipay_config);
 		$verify_result = $aop->check($_POST);
 		if($verify_result){
-			if($_POST['service']=='alipay.adatabus.risk.end.push' || $_POST['service']=='alipay.riskgo.risk.push'){
+			if($_POST['msg_method'] == 'alipay.merchant.tradecomplain.changed'){
+				$bizContent = json_decode($_POST['biz_content'], true);
+				if($bizContent && isset($bizContent['complain_event_id'])){
+					$model = \lib\Complain\CommUtil::getModel($channel);
+					$model->refreshNewInfo($bizContent['complain_event_id']);
+				}
+			}
+			/*if($_POST['service']=='alipay.adatabus.risk.end.push' || $_POST['service']=='alipay.riskgo.risk.push'){
 				if($_POST['charset'] == 'GBK'){
 					$_POST['risktype'] = mb_convert_encoding($_POST['risktype'], "UTF-8", "GBK");
 					$_POST['risklevel'] = mb_convert_encoding($_POST['risklevel'], "UTF-8", "GBK");
@@ -530,7 +617,7 @@ class alipay_plugin
 					$_POST['complainText'] = mb_convert_encoding($_POST['complainText'], "UTF-8", "GBK");
 				}
 				$DB->exec("INSERT INTO `pre_alipayrisk` (`channel`,`pid`,`smid`,`tradeNos`,`risktype`,`risklevel`,`riskDesc`,`complainTime`,`complainText`,`date`,`status`) VALUES (:channel, :pid, :smid, :tradeNos, :risktype, :risklevel, :riskDesc, :complainTime, :complainText, NOW(), 0)", [':channel'=>$channelid, ':pid'=>$_POST['pid'], ':smid'=>$_POST['smid']?$_POST['smid']:$_POST['merchantId'], ':tradeNos'=>$_POST['tradeNos'], ':risktype'=>$_POST['risktype'], ':risklevel'=>$_POST['risklevel'], ':riskDesc'=>$_POST['riskDesc'], ':complainTime'=>$_POST['complainTime'], ':complainText'=>$_POST['complainText']]);
-			}
+			}*/
 			return ['type'=>'html','data'=>'success'];
 		}else{
 			return ['type'=>'html','data'=>'check sign fail'];

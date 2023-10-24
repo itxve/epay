@@ -650,6 +650,7 @@ switch ($act) {
         if ($DB->getRow("select * from pre_domain where uid=:uid and domain=:domain limit 1", [':uid' => $uid, ':domain' => $domain]))
             exit('{"code":-1,"msg":"该域名已存在，请勿重复添加"}');
         if (!$DB->exec("INSERT INTO `pre_domain` (`uid`,`domain`,`status`,`addtime`) VALUES (:uid, :domain, 0, NOW())", [':uid' => $uid, ':domain' => $domain])) exit('{"code":-1,"msg":"添加失败' . $DB->error() . '"}');
+        \lib\MsgNotice::send('domain', 0, ['uid'=>$uid, 'domain'=>$domain]);
         exit(json_encode(['code' => 0, 'msg' => '添加域名成功！']));
         break;
     case 'delDomain':

@@ -289,15 +289,15 @@ if($_SESSION['bind_telegram'] != ""){
                                 </div>
                             </div>
 
-                            <?php if($conf['wxnotice']==1){
+                            <?php if($conf['wxnotice']==1 || $conf['mailnotice']==1){
                                 $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
                                 ?>
                                 <div class="line line-dashed b-b line-lg pull-in"></div>
-                                <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>微信消息提醒设置：</h4><?php if(!$userrow['wx_uid']){?><font color="#ff7373">需要先绑定微信才可以收到消息提醒</font><?php }?></div></div>
-                                <?php if($conf['wxnotice_tpl_order']){?><div class="form-group">
+                                <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>消息提醒接收设置：</h4><?php if(!$userrow['wx_uid']){?><font color="#ff7373">需要先绑定微信才可以收到消息提醒</font><?php }?></div></div>
+                                <?php if($conf['wxnotice_tpl_order'] || $conf['msgconfig_order']){?><div class="form-group">
                                     <label class="col-sm-2 control-label">新订单通知</label>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="notice_order" default="<?php echo $userrow['msgconfig']['order']?>"><option value="0">关闭</option><option value="1">开启</option></select>
+                                        <select class="form-control" name="notice_order" default="<?php echo $userrow['msgconfig']['order']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_order']){?><option value="1">开启 - 微信公众号</option><?php } if($conf['msgconfig_order']){?><option value="2">开启 - 邮件</option><?php }?></select>
                                     </div>
                                     </div>
                                     <div class="form-group">
@@ -306,23 +306,30 @@ if($_SESSION['bind_telegram'] != ""){
                                         <div class="input-group"><input class="form-control" type="text" name="notice_order_money" value="<?php echo $userrow['msgconfig']['order_money']?>"><span class="input-group-addon">元</span></div>
                                     </div>
                                     </div><?php }?>
-                                <?php if($conf['wxnotice_tpl_settle']){?><div class="form-group">
+                                <?php if($conf['wxnotice_tpl_settle'] || $conf['msgconfig_settle']){?><div class="form-group">
                                     <label class="col-sm-2 control-label">结算通知</label>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="notice_settle" default="<?php echo $userrow['msgconfig']['settle']?>"><option value="0">关闭</option><option value="1">开启</option></select>
+                                        <select class="form-control" name="notice_settle" default="<?php echo $userrow['msgconfig']['settle']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_settle']){?><option value="1">开启 - 微信公众号</option><?php } if($conf['msgconfig_settle']){?><option value="2">开启 - 邮件</option><?php }?></select>
                                     </div>
                                     </div><?php }?>
                                 <?php if($conf['wxnotice_tpl_login']){?><div class="form-group">
                                     <label class="col-sm-2 control-label">登录通知</label>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="notice_login" default="<?php echo $userrow['msgconfig']['login']?>"><option value="0">关闭</option><option value="1">开启</option></select>
+                                        <select class="form-control" name="notice_login" default="<?php echo $userrow['msgconfig']['login']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_login']){?><option value="1">开启 - 微信公众号</option><?php }?></select>
                                     </div>
                                     </div><?php }?>
+                                <?php if($conf['wxnotice_tpl_complain'] || $conf['msgconfig_complain']){?><div class="form-group">
+                                    <label class="col-sm-2 control-label">交易投诉通知</label>
+                                    <div class="col-sm-9">
+                                        <select class="form-control" name="notice_complain" default="<?php echo $userrow['msgconfig']['complain']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_complain']){?><option value="1">开启 - 微信公众号</option><?php } if($conf['msgconfig_complain']){?><option value="2">开启 - 邮件</option><?php }?></select>
+                                    </div>
+                                </div><?php }?>
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-4"><input type="button" id="editMsgConfig" value="确定修改" class="btn btn-primary form-control"/><br/>
                                     </div>
                                 </div>
                             <?php }?>
+
 
                             <?php
                             if($conf['user_settings_edit']){

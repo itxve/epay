@@ -62,12 +62,11 @@ switch ($act) {
                 $DB->update('user', ['qq_uid' => $qq_uid], ['uid' => $uid]);
                 unset($_SESSION['Oauth_qq_uid']);
             }
-            $city = '';
+            $city=get_ip_city($clientip);
             $DB->insert('log', ['uid' => $uid, 'type' => '普通登录', 'date' => 'NOW()', 'ip' => $clientip, 'city' => $city]);
-            $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-            if ($userrow['msgconfig']['login'] == 1 && !empty($userrow['wx_uid'])) {
-                if (!isset($_SESSION['wxnotice_login_uid']) || $_SESSION['wxnotice_login_uid'] != $uid) {
-                    send_wechat_tplmsg('login', $userrow['wx_uid'], ['user' => $user, 'clientip' => $clientip, 'ipinfo' => get_ip_city($clientip), 'time' => date('Y-m-d H:i:s')]);
+
+            if(!isset($_SESSION['wxnotice_login_uid']) || $_SESSION['wxnotice_login_uid']!=$uid){
+                if(\lib\MsgNotice::send('login', $uid, ['user'=>$user, 'clientip'=>$clientip, 'ipinfo'=>$city, 'time'=>date('Y-m-d H:i:s')])){
                     $_SESSION['wxnotice_login_uid'] = $uid;
                 }
             }
@@ -262,6 +261,9 @@ switch ($act) {
                 $_SESSION['reg_submit'] = time();
                 $result = array("code" => 1, "msg" => "申请商户成功！", "uid" => $uid, "key" => $key);
                 unset($_SESSION['csrf_token']);
+                if($paystatus == 2){
+                    \lib\MsgNotice::send('regaudit', 0, ['uid'=>$uid, 'account'=>$info['email']?$info['email']:$info['phone']]);
+                }
             } else {
                 $result = array("code" => -1, "msg" => "申请商户失败！" . $DB->error());
             }

@@ -77,19 +77,15 @@ switch ($act) {
             if ($status == 1) {
                 $sql = "update pre_settle set status='$status',endtime='$date',result=NULL where id='$id'";
 
-                $row = $DB->find('settle', 'uid,money,realmoney,account', ['id' => $id]);
-                $userrow = $DB->find('user', 'wx_uid,msgconfig', ['uid' => $row['uid']]);
-                $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-                if ($userrow['msgconfig']['settle'] == 1 && !empty($userrow['wx_uid'])) {
-                    send_wechat_tplmsg('settle', $userrow['wx_uid'], ['money' => $row['money'], 'realmoney' => $row['realmoney'], 'time' => date('Y-m-d H:i:s'), 'account' => $row['account']]);
-                }
+                $row = $DB->find('settle', 'uid,money,realmoney,account', ['id'=>$id]);
+                \lib\MsgNotice::send('settle', $row['uid'], ['money'=>$row['money'], 'realmoney'=>$row['realmoney'], 'time'=>date('Y-m-d H:i:s'), 'account'=>$row['account']]);
             } else {
                 $sql = "update pre_settle set status='$status',endtime=NULL where id='$id'";
             }
             if ($DB->exec($sql) !== false){
-                if ($status == 3 || $status == 1){
-                    telegramBot_notice("SettleNotice", ["settle_id" => $id]);
-                }
+//                if ($status == 3 || $status == 1){
+//                    telegramBot_notice("SettleNotice", ["settle_id" => $id]);
+//                }
                 exit('{"code":200}');
             } else {
                 exit('{"code":400,"msg":"修改记录失败！[' . $DB->error() . ']"}');
@@ -223,11 +219,7 @@ switch ($act) {
             $data['result'] = '转账订单号:' . $result['orderid'] . ' 支付时间:' . $result['paydate'];
             $DB->update('settle', ['status' => 1, 'endtime' => 'NOW()', 'transfer_status' => 1, 'transfer_result' => $result["orderid"], 'transfer_date' => $result["paydate"]], ['id' => $id]);
 
-            $userrow = $DB->find('user', 'wx_uid,msgconfig', ['uid' => $row['uid']]);
-            $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-            if ($userrow['msgconfig']['settle'] == 1 && !empty($userrow['wx_uid'])) {
-                send_wechat_tplmsg('settle', $userrow['wx_uid'], ['money' => $row['money'], 'realmoney' => $row['realmoney'], 'time' => date('Y-m-d H:i:s'), 'account' => $row['account']]);
-            }
+            \lib\MsgNotice::send('settle', $row['uid'], ['money'=>$row['money'], 'realmoney'=>$row['realmoney'], 'time'=>date('Y-m-d H:i:s'), 'account'=>$row['account']]);
         } else {
             if (in_array($result['errcode'], $payee_err_code)) {
                 $data['code'] = 0;

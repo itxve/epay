@@ -11,7 +11,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
     <div class="col-xs-12 col-sm-10 col-lg-8 center-block" style="float: none;">
 <?php
 $mod=isset($_GET['mod'])?$_GET['mod']:null;
-$mods=['site'=>'网站信息','pay'=>'支付相关','settle'=>'结算规则','transfer'=>'企业付款','oauth'=>'快捷登录','notice'=>'消息提醒','certificate'=>'实名认证','template'=>'首页模板','gonggao'=>'公告与排版','mail'=>'邮箱与短信','upimg'=>'LOGO设置','iptype'=>'IP地址','cron'=>'计划任务','proxy'=>'中转代理','account'=>'修改密码'];
+$mods=['site'=>'网站信息','pay'=>'支付相关','settle'=>'结算规则','transfer'=>'企业付款','oauth'=>'快捷登录','notice'=>'消息提醒','certificate'=>'实名认证','template'=>'首页模板','gonggao'=>'公告与排版','mail'=>'邮箱与短信','upimg'=>'LOGO设置','iptype'=>'IP地址','cron'=>'计划任务','proxy'=>'中转代理','account'=>'修改密码','telegram'=>'TelegramBot'];
 ?>
 <ul class="nav nav-pills">
 	<?php foreach($mods as $key=>$name){echo '<li class="'.($key==$mod?'active':null).'"><a href="set.php?mod='.$key.'">'.$name.'</a></li>';} ?>
@@ -1043,15 +1043,8 @@ $("select[name='sms_api']").change(function(){
         showmsg('Telegram Bot配置已生效！',1);
     }
     showmsg('未生效',1);
-
-}elseif($mod=='notice'){
-$errmsg = $CACHE->read('wxtplerrmsg');
-if($errmsg){
-	$arr = unserialize($errmsg);
-	$errmsg = $arr['time'].' - '.$arr['errmsg'];
-}
+}elseif($mod=='telegram'){
 ?>
-<style>.wxparam{display: inline;width: 100px; margin: 0 3px;}</style>
 <div class="panel panel-primary">
     <div class="panel-heading"><h3 class="panel-title">TelegramBot消息推送</h3></div>
     <div class="panel-body">
@@ -1109,6 +1102,13 @@ if($errmsg){
 
 
             <div class="form-group">
+                <label class="col-sm-2 control-label">异常推送阈值</label>
+                <div class="col-sm-5"><input type="text" name="telegram_payokrate" value="<?php echo $conf['telegram_payokrate']; ?>" class="form-control" placeholder="支付成功率"/></div>
+                <div class="col-sm-5"><input type="text" name="telegram_payatime" value="<?php echo $conf['telegram_payatime']; ?>" class="form-control" placeholder="平均支付时间 单位:秒"/></div>
+            </div><br/>
+
+
+            <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
                     <a href="set.php?mod=tgbotset">>>>修改后点击此处让Bot生效<<<</a>
                 </div><br/>
@@ -1119,10 +1119,17 @@ if($errmsg){
         <span class="glyphicon glyphicon-info-sign"></span>
         Tg API代理：可以直接使用https://tg-bot.0x23.cf/ 或 https://tgbot.hostport.top, 如果反应慢可以自己用海外服务器搭建Nginx反向代理到 https://api.telegram.org<br/>
     </div>
-
-
-
-
+</div>
+<?php
+}elseif($mod=='notice'){
+$errmsg = $CACHE->read('wxtplerrmsg');
+if($errmsg){
+	$arr = unserialize($errmsg);
+	$errmsg = $arr['time'].' - '.$arr['errmsg'];
+}
+?>
+<style>.wxparam{display: inline;width: 100px; margin: 0 3px;}</style>
+<div class="panel panel-primary">
 <div class="panel-heading"><h3 class="panel-title">微信公众号消息提醒设置</h3></div>
 <div class="panel-body">
 <?php if($errmsg){?><div class="alert alert-warning">上一次报错信息：<?php echo $errmsg;?></div><?php }?>
@@ -1162,10 +1169,53 @@ if($errmsg){
   </form>
 </div>
 <div class="panel-footer">
-<span class="glyphicon glyphicon-info-sign"></span>
-用于消息提醒的公众号，和快捷登录使用的公众号一样，也即必须同时开启微信快捷登录才可以使用该功能。<br/>
-模板参数名类似于thingx、character_stringx、amountx等，在微信模板详情页面查看，无相关参数的需留空。
+    <span class="glyphicon glyphicon-info-sign"></span>
+    用于消息提醒的公众号，和快捷登录使用的公众号一样，也即必须同时开启微信快捷登录才可以使用该功能。<br/>
+    模板参数名类似于thingx、character_stringx、amountx等，在微信模板详情页面查看，无相关参数的需留空。<br/>
+    <b>所有消息类型需要在用户中心绑定微信快捷登录，并手动开启才能收到。</b>
 </div>
+</div>
+<div class="panel panel-primary">
+    <div class="panel-heading"><h3 class="panel-title">邮件消息提醒设置</h3></div>
+    <div class="panel-body">
+        <?php if($errmsg2){?><div class="alert alert-warning">上一次报错信息：<?php echo $errmsg2;?></div><?php }?>
+        <form onsubmit="return saveSetting(this)" method="post" class="form-horizontal" role="form">
+            <h4 style="text-align: center;">管理员接收邮件开关设置</h4>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">新注册商户待审核提醒</label>
+                <div class="col-sm-9"><select class="form-control" name="msgconfig_regaudit" default="<?php echo $conf['msgconfig_regaudit']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">商户手动提现提醒</label>
+                <div class="col-sm-9"><select class="form-control" name="msgconfig_apply" default="<?php echo $conf['msgconfig_apply']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">授权域名待审核提醒</label>
+                <div class="col-sm-9"><select class="form-control" name="msgconfig_domain" default="<?php echo $conf['msgconfig_domain']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <h4 style="text-align: center;">用户接收邮件开关设置</h4>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">邮件消息开关</label>
+                <div class="col-sm-9"><select class="form-control" name="mailnotice" default="<?php echo $conf['mailnotice']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">新订单通知</label>
+                <div class="col-sm-9"><select class="form-control" name="msgconfig_order" default="<?php echo $conf['msgconfig_order']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">结算通知</label>
+                <div class="col-sm-9"><select class="form-control" name="msgconfig_settle" default="<?php echo $conf['msgconfig_settle']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+            </div><br/>
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
+                </div><br/>
+            </div>
+        </form>
+    </div>
+    <div class="panel-footer">
+        <span class="glyphicon glyphicon-info-sign"></span>
+        <b>用户接收邮件的开关，除了在这里开启外，需要在用户中心手动开启才能收到。且用户只能选择一种消息接收方式。</b>
+    </div>
 </div>
 <?php
 }elseif($mod=='cron'){

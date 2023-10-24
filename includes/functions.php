@@ -557,7 +557,10 @@ function processOrder($srow,$notify=true){
             if($sds && !empty($info['email'])){
                 $sub = $conf['sitename'].' - 注册成功通知';
                 $msg = '<h2>商户注册成功通知</h2>感谢您注册'.$conf['sitename'].'！<br/>您的登录账号：'.$info['email'].'<br/>您的商户ID：'.$uid.'<br/>您的商户秘钥：'.$key.'<br/>'.$conf['sitename'].'官网：<a href="http://'.$_SERVER['HTTP_HOST'].'/" target="_blank">'.$_SERVER['HTTP_HOST'].'</a><br/>【<a href="http://'.$_SERVER['HTTP_HOST'].'/user/" target="_blank">商户管理后台</a>】';
-                $result = send_mail($info['email'], $sub, $msg);
+                send_mail($info['email'], $sub, $msg);
+            }
+            if($paystatus == 2){
+                \lib\MsgNotice::send('regaudit', 0, ['uid'=>$uid, 'account'=>$info['email']?$info['email']:$info['phone']]);
             }
         }
     }else if($srow['tid']==2){ //充值余额
@@ -595,11 +598,8 @@ function processOrder($srow,$notify=true){
         }
     }
     if($srow['tid']==0 || $srow['tid']==3){
-        $userrow = $DB->find('user', 'wx_uid,msgconfig', ['uid'=>$srow['uid']]);
-        $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-        if($userrow['msgconfig']['order'] == 1 && !empty($userrow['wx_uid']) && $srow['money']>=$userrow['msgconfig']['order_money']){
-            send_wechat_tplmsg('order', $userrow['wx_uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'time'=>date('Y-m-d H:i:s')]);
-        }
+        // 订单通知
+        \lib\MsgNotice::send('order', $srow['uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'type'=>$srow['typeshowname'], 'time'=>date('Y-m-d H:i:s')]);
     }
     if($channel['daytop']>0){
         $cachekey = 'daytop'.$channel['id'].date("Ymd");
