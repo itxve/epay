@@ -767,20 +767,24 @@ switch ($act) {
         $total = $DB->getColumn("SELECT count(*) from pre_settle WHERE{$sql}");
         $list = $DB->getAll("SELECT * FROM pre_settle WHERE{$sql} order by id desc limit $offset,$limit");
 
-        $i = 0;
-        for ($id = count($list); $id >= 1; $id--) {
-            $ids[] = $id;
-        }
-        foreach ($list as $row){
-            $row['id'] = $ids[$i];
-            if($row['type'] == "5" || $row['type'] == "6"){
-                $row['realmoney'] = $row['realmoney'] . " / " . round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
+        if (count($list)>0){
+            if($list[0]['type'] == "5" || $list[0]['type'] == "6"){
+                $list[0]['realmoney'] = $list[0]['realmoney'] . " / " . round($list[0]['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
             }
-            $i++;
-            $newlist[] = $row;
         }
-
-        exit(json_encode(['total' => $total, 'rows' => $newlist]));
+//        $i = 0;
+//        for ($id = count($list); $id >= 1; $id--) {
+//            $ids[] = $id;
+//        }
+//        foreach ($list as $row){
+//            $row['id'] = $ids[$i];
+//            if($row['type'] == "5" || $row['type'] == "6"){
+//                $row['realmoney'] = $row['realmoney'] . " / " . round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
+//            }
+//            $i++;
+//            $newlist[] = $row;
+//        }
+        exit(json_encode(['total' => $total, 'rows' => $list]));
         break;
     case 'transferList':
         $sql = " uid=$uid";
