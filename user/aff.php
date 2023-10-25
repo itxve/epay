@@ -13,12 +13,18 @@ include './head.php';
 <div class="bg-light lter b-b wrapper-md hidden-print">
   <h1 class="m-n font-thin h3">邀请好友</h1>
 </div>
+
 <div class="wrapper-md control">
 <?php if(isset($msg)){?>
 <div class="alert alert-info">
 	<?php echo $msg?>
 </div>
 <?php }?>
+<?php if($userrow['aff']!=1){?>
+    <div class="alert alert-info">
+        <?php echo "没有邀请权限。"?>
+    </div>
+<?php exit(); } ?>
     <div class="col-md-2">
         <div class="panel panel-default">
             <?php
