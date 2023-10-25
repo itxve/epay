@@ -598,8 +598,9 @@ function processOrder($srow,$notify=true){
         }
     }
     if($srow['tid']==0 || $srow['tid']==3){
-        // 订单通知
-        \lib\MsgNotice::send('order', $srow['uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'type'=>$srow['typeshowname'], 'time'=>date('Y-m-d H:i:s')]);
+        $typeRow = $DB->getRow("select * from pre_type where id=:id limit 1", [':id' => $srow['type']]);
+        $srow['typeshowname'] = $typeRow['showname'];
+        \lib\MsgNotice::send('order', $srow['uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'type'=>$srow['typeshowname'], 'time'=>date('Y-m-d H:i:s'), 'addtime'=>$srow['addtime'], 'notify'=>$srow['notify']]);
     }
     if($channel['daytop']>0){
         $cachekey = 'daytop'.$channel['id'].date("Ymd");
@@ -1081,4 +1082,35 @@ function telegramBot_SendMessage($tid, $msg){
         return true;
     }
     return false;
+}
+
+function rc4($str, $key, $Encrypt=false) {
+    if (!$Encrypt) $str = base64_decode($str);
+    $s = array();
+    for ($i = 0; $i < 256; $i++) {
+        $s[$i] = $i;
+    }
+    $j = 0;
+    for ($i = 0; $i < 256; $i++) {
+        $j = ($j + $s[$i] + ord($key[$i % strlen($key)])) % 256;
+        $tmp = $s[$i];
+        $s[$i] = $s[$j];
+        $s[$j] = $tmp;
+    }
+    $i = $j = 0;
+    $res = '';
+    for ($y = 0; $y < strlen($str); $y++) {
+        $i = ($i + 1) % 256;
+        $j = ($j + $s[$i]) % 256;
+        $tmp = $s[$i];
+        $s[$i] = $s[$j];
+        $s[$j] = $tmp;
+        $res .= $str[$y] ^ chr($s[($s[$i] + $s[$j]) % 256]);
+    }
+
+    if ($Encrypt) {
+        return base64_encode($res);
+    } else {
+        return $res;
+    }
 }

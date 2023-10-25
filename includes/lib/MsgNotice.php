@@ -9,13 +9,18 @@ class MsgNotice
         global $DB, $conf;
         if($uid == 0){
             $switch = self::getMessageSwitch($scene);
+
+            if ($conf['telegram_uid'] != "") self::send_telegram_tplmsg($scene, $conf['telegram_uid'], $param); // telegram
             if($switch == 1){
                 $receiver = $conf['mail_recv']?$conf['mail_recv']:$conf['mail_name'];
                 return self::send_mail_msg($scene, $receiver, $param);
             }
         }else{
-            $userrow = $DB->find('user', 'email,wx_uid,msgconfig', ['uid'=>$uid]);
+            $userrow = $DB->find('user', 'email,wx_uid,msgconfig,telegram', ['uid'=>$uid]);
             $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
+
+            if ($userrow['telegram'] != "") self::send_telegram_tplmsg($scene, $userrow['telegram'], $param); // telegram
+
             if($userrow['msgconfig'][$scene] == 1 && !empty($userrow['wx_uid'])){
                 if($scene == 'order' && $userrow['msgconfig']['order_money']>0 && $param['money']<$userrow['msgconfig']['order_money']) return false;
                 return self::send_wechat_tplmsg($scene, $userrow['wx_uid'], $param);
@@ -24,6 +29,42 @@ class MsgNotice
             }
         }
         return false;
+    }
+
+    public static function send_telegram_tplmsg($scene, $tid, $param){
+        global $conf, $siteurl, $CACHE;
+        $content = "";
+        if($scene == 'settle'){
+            $type = $param['type'];
+            $typeStr = "未知";
+            $realmoney = $param['realmoney'];
+            if ($type == 1){
+                $typeStr = "支付宝";
+            }elseif ($type == 2){
+                $typeStr = "微信";
+            }elseif ($type == 3){
+                $typeStr = "QQ钱包";
+            }elseif ($type == 4){
+                $typeStr = "银行卡";
+            }elseif ($type == 5){
+                $typeStr = "USDT-trc20";
+                $realmoney = round($realmoney / $conf['settle_usdt_rate'], 2) . "u";
+            }elseif ($type == 6){
+                $typeStr = "币安USDT-trc20";
+                $realmoney = round($realmoney / $conf['settle_usdt_rate'], 2) . "u";
+            }
+            $content = "📢".$conf['sitename'].date('m-d', strtotime('-1 day', strtotime($param['addtime'])))."款项结算通知\n收款方式：" . $typeStr ."\n收款账号：".$param['account']."\n结算金额：".$param['money']."元\n实际到账：". $realmoney."\n\n✅已打款✅";
+        }else if($scene == 'order'){
+            $content = "📢新订单通知。\n系统订单号：`".$param['trade_no']."`\n商户订单号：`".$param['out_trade_no']."`\n商品名称：".$param['name']."\n订单金额：￥".$param['money']."\n支付方式：".$param['type']."\n订单时间：".$param['addtime']."\n支付时间：".$param['time'];
+            if($param['notify'] > 0) $content .= "\n❌通知失败:".$param['notify']."次";
+        }else if($scene == 'regaudit'){
+            $content = "📢".$conf['sitename']."有新注册的商户待审核，请及时前往用户列表审核处理。\n商户ID：".$param['uid']."\n注册账号：".$param['account']."\n注册时间：".$param['time'];
+        }else if($scene == 'apply'){
+            $content = "📢".$conf['sitename']."商户发起了手动提现申请，请及时处理。\n商户ID：".$param['uid']."\n提现方式：".$param['type']."\n提现金额：".$param['realmoney']."\n提交时间：".date('Y-m-d H:i:s');
+        }
+        if ($content=="") return false;
+        telegramBot_SendMessage($tid, $content);
+        return true;
     }
 
     public static function send_wechat_tplmsg($scene, $openid, $param){

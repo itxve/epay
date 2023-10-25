@@ -19,8 +19,8 @@ if(strlen($userrow['phone'])==11){
 }
 
 if($_SESSION['bind_telegram'] != ""){
-    $bindTG = base64_decode($_SESSION['bind_telegram']);
-    $array = explode("|", $bindTG);
+    $bindTG = rc4($_SESSION['bind_telegram'], $conf['telegram_key']);
+    $array = explode("_", $bindTG);
 
     $minutesDifference = (time() - $array[1]) / 60;
     if ($minutesDifference > 1) {
@@ -259,7 +259,7 @@ if($_SESSION['bind_telegram'] != ""){
                                 <div class="col-sm-9">
                                     <div class="input-group">
                                         <input class="form-control" type="text" name="telegram" value="<?php echo $userrow['telegram']?>" disabled>
-                                        <a class="input-group-addon" target="_blank" href="<?php echo $conf['telegram_boturl']; ?>">修改绑定</a>
+                                        <a class="input-group-addon" target="_blank" href="<?php echo $conf['telegram_boturl']."?start=".rc4("bind_".$uid."_".time(), $conf['telegram_key'], true); ?>">修改绑定</a>
                                     </div>
                                 </div>
                             </div>
