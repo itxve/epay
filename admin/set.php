@@ -1095,11 +1095,10 @@ $("select[name='sms_api']").change(function(){
                 <div class="col-sm-10"><select class="form-control" name="telegram_bindtype" default="<?php echo $conf['telegram_bindtype']?>"><option value="0">跳转链接绑定</option><option value="1">发送消息绑定</option><option value="2">只能在用户中心绑定</option></select></div>
             </div><br/>
 
-            <div class="form-group">
-                <label class="col-sm-2 control-label">交易分析推送时间</label>
-                <div class="col-sm-10"><input type="text" name="telegram_tapushtime" value="<?php echo $conf['telegram_tapushtime']; ?>" class="form-control" placeholder="单位:分"/></div>
-            </div><br/>
-
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-2 control-label">交易分析推送时间</label>-->
+<!--                <div class="col-sm-10"><input type="text" name="telegram_tapushtime" value="--><?php //echo $conf['telegram_tapushtime']; ?><!--" class="form-control" placeholder="单位:分"/></div>-->
+<!--            </div><br/>-->
 
             <div class="form-group">
                 <label class="col-sm-2 control-label">异常推送阈值</label>
