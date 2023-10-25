@@ -79,8 +79,8 @@ switch ($act) {
             if (empty($userrow['account']) || empty($userrow['username'])) {
                 $result = array("code" => 0, "msg" => "登录成功！正在跳转到收款账号设置", "url" => "./editinfo.php?start=1");
             }else if(isset($_SESSION['login_jump'])) {
-                $_SESSION['login_jump'] = "";
-                $result = array("code" => 0, "msg" => "登录成功！正在绑定Telegram Bot", "url" => "./editinfo.php");
+                $result = array("code" => 0, "msg" => "登录成功！正在绑定Telegram Bot", "url" => "./".$_SESSION['login_jump']);
+                unset($_SESSION['login_jump']);
             }else {
                 $result = array("code" => 0, "msg" => "登录成功！正在跳转到用户中心", "url" => "./");
             }
