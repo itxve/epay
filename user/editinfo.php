@@ -293,7 +293,7 @@ if($_SESSION['bind_telegram'] != ""){
                                 $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
                                 ?>
                                 <div class="line line-dashed b-b line-lg pull-in"></div>
-                                <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>消息提醒接收设置：</h4><?php if(!$userrow['wx_uid']){?><font color="#ff7373">需要先绑定微信才可以收到消息提醒</font><?php }?></div></div>
+                                <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>消息提醒接收设置：</h4><?php if(!$userrow['wx_uid']&&$conf['wxnotice']==1){?><font color="#ff7373">微信公众号消息需要先绑定微信才可以收到消息提醒</font><?php }?></div></div>
                                 <?php if($conf['wxnotice_tpl_order'] || $conf['msgconfig_order']){?><div class="form-group">
                                     <label class="col-sm-2 control-label">新订单通知</label>
                                     <div class="col-sm-9">
