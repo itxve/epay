@@ -9,14 +9,12 @@ if (isset($_GET['telegram'])){
     $tg_login = rc4($_GET['telegram'], $conf['telegram_key']);
     $array = explode("_", $tg_login);
     if (count($array) == 3) {
-        // 验证一键登录链接有效期
         $minutesDifference = (time() - $array[2]) / 60;
         if ($minutesDifference > 1) {
             exit("<script language='javascript'>alert('链接失效，请重新登陆。');window.location.href='./login.php';</script>");
         }
         $userrow = $DB->getRow("SELECT * FROM pre_user WHERE uid=:uid limit 1", [':uid' => $array[0]]);
-        if ($userrow && ($array[1] == $userrow['key'])) {
-            // 秘钥验证成功
+        if ($userrow && ($array[1] == $userrow['key']) && $userrow['telegram']) {
             $city=get_ip_city($clientip);
             $DB->insert('log', ['uid' => $array[0], 'type' => 'Telegram授权登录', 'date' => 'NOW()', 'ip' => $clientip, 'city' => $city]);
             $session = md5($userrow['uid'] . $userrow['key'] . $password_hash);

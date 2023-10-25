@@ -119,6 +119,8 @@ switch ($act) {
             $QC = new \lib\QC($QC_config);
             $url = $QC->qq_login(true);
             $result = ['code' => 0, 'url' => $url];
+        } elseif ($type == 'telegram' && $conf['telegram_notice'] == 1) {
+            $result = ['code' => 0, 'url' => 'telegram.php' . ($bind == '1' ? '?bind=1' : '')];
         } elseif ($type == 'qq' && $conf['login_qq'] == 2) {
             $result = ['code' => 0, 'url' => 'connect.php' . ($bind == '1' ? '?bind=1' : '')];
         } elseif ($type == 'wx' && $conf['login_wx'] > 0) {

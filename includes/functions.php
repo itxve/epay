@@ -1086,7 +1086,11 @@ function telegramBot_SendMessage($tid, $msg){
 }
 
 function rc4($str, $key, $Encrypt=false) {
-    if (!$Encrypt) $str = base64_decode($str);
+    if (!$Encrypt) {
+        $str = str_replace("-", "+", $str);
+        $str = str_replace("_", "/", $str);
+        $str = base64_decode($str);
+    }
     $s = array();
     for ($i = 0; $i < 256; $i++) {
         $s[$i] = $i;
@@ -1110,7 +1114,9 @@ function rc4($str, $key, $Encrypt=false) {
     }
 
     if ($Encrypt) {
-        return base64_encode($res);
+        $res = base64_encode($res);
+        $res = str_replace("+", "-", $res);
+        return str_replace("/", "_", $res);
     } else {
         return $res;
     }

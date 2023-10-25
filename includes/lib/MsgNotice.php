@@ -18,21 +18,22 @@ class MsgNotice
         }else{
             $userrow = $DB->find('user', 'email,wx_uid,msgconfig,telegram', ['uid'=>$uid]);
             $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-
-            if ($userrow['telegram'] != "") self::send_telegram_tplmsg($scene, $userrow['telegram'], $param); // telegram
+            if($scene == 'order' && $userrow['msgconfig']['order_money']>0 && $param['money']<$userrow['msgconfig']['order_money']) return false;
+//            if ($userrow['telegram'] != "") self::send_telegram_tplmsg($scene, $userrow['telegram'], $param); // telegram
 
             if($userrow['msgconfig'][$scene] == 1 && !empty($userrow['wx_uid'])){
-                if($scene == 'order' && $userrow['msgconfig']['order_money']>0 && $param['money']<$userrow['msgconfig']['order_money']) return false;
                 return self::send_wechat_tplmsg($scene, $userrow['wx_uid'], $param);
             }elseif($userrow['msgconfig'][$scene] == 2 && !empty($userrow['email']) && self::getMessageSwitch($scene) == 1){
                 return self::send_mail_msg($scene, $userrow['email'], $param);
+            }elseif($userrow['msgconfig'][$scene] == 10 && !empty($userrow['telegram']) && self::getMessageSwitch($scene) == 1){
+                return self::send_telegram_tplmsg($scene, $userrow['telegram'], $param);
             }
         }
         return false;
     }
 
     public static function send_telegram_tplmsg($scene, $tid, $param){
-        global $conf, $siteurl, $CACHE;
+        global $conf;
         $content = "";
         if($scene == 'settle'){
             $type = $param['type'];
