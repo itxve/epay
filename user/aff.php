@@ -1,7 +1,7 @@
 <?php
 include("../includes/common.php");
 if($islogin2==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
-$title='订单分成明细';
+$title='邀请好友';
 include './head.php';
 ?>
 <style>
@@ -11,7 +11,7 @@ include './head.php';
     <div class="app-content-body ">
 
 <div class="bg-light lter b-b wrapper-md hidden-print">
-  <h1 class="m-n font-thin h3">订单分成明细</h1>
+  <h1 class="m-n font-thin h3">邀请好友</h1>
 </div>
 <div class="wrapper-md control">
 <?php if(isset($msg)){?>
@@ -19,6 +19,39 @@ include './head.php';
 	<?php echo $msg?>
 </div>
 <?php }?>
+    <div class="col-md-2">
+        <div class="panel panel-default">
+            <?php
+            $lists = $DB->getAll("SELECT * FROM pre_user WHERE `ref_uid`='$uid'");
+            foreach ($lists as $list){
+                $uuid = $list['uid'];
+                $records = $DB->getAll("SELECT * FROM pre_record WHERE `trade_no`='$uuid' AND `type`='下级分成'");
+                $total_money = 0;
+                foreach ($records as $record){
+                    if ($record['action'] == 1){
+                        $total_umoney += $record['money'];
+                    }else if ($record['action'] == 1){
+                        $total_umoney -= $record['money'];
+                    }
+                }
+                $total_money += $total_umoney;
+                $table_list = "<tr><td>".$uuid."</td><td>".$total_umoney."</td></tr>";
+            }
+            ?>
+            <div class="panel-heading font-bold">
+                <h3 class="panel-title">总佣金：<?php echo $total_money ?></h3>
+            </div>
+            <table class="table table-striped">
+                <tr>
+                    <th>下级商户</th>
+                    <th>佣金</th>
+                </tr>
+                <?php echo $table_list ?>
+            </table>
+
+        </div>
+    </div>
+    <div class="col-md-10">
 	<div class="panel panel-default">
 		<div class="panel-heading font-bold">
 			<h3 class="panel-title">订单分成明细</h3>
@@ -45,6 +78,7 @@ include './head.php';
       <table id="listTable">
 	  </table>
 	</div>
+    </div>
 </div>
     </div>
   </div>

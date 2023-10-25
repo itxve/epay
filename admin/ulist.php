@@ -161,6 +161,12 @@ $(document).ready(function(){
 					}else{
 						html += '<a href="javascript:setStatus('+row.uid+',\'settle\',1)"><font color=red><i class="fa fa-times-circle"></i>结算</font></a>';
 					}
+                    html += '&nbsp;';
+                    if(row.aff == '1'){
+                        html += '<a href="javascript:setStatus('+row.uid+',\'aff\',0)"><font color=green><i class="fa fa-check-circle"></i>AFF</font></a>';
+                    }else{
+                        html += '<a href="javascript:setStatus('+row.uid+',\'aff\',1)"><font color=grey><i class="fa fa-times-circle"></i>AFF</font></a>';
+                    }
 					return html;
 				}
 			},
