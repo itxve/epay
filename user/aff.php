@@ -41,11 +41,11 @@ include './head.php';
                     }
                 }
                 $total_money += $total_umoney;
-                $table_list = "<tr><td>".$uuid."</td><td>".$total_umoney."</td></tr>";
+                $table_list .= "<tr><td>".$uuid."</td><td>".round($total_umoney, 2)."</td></tr>";
             }
             ?>
             <div class="panel-heading font-bold">
-                <h3 class="panel-title">总佣金：<?php echo $total_money ?></h3>
+                <h3 class="panel-title">总佣金：<?php echo round($total_money, 2) ?></h3>
             </div>
             <table class="table table-striped">
                 <tr>

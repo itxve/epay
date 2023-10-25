@@ -600,7 +600,7 @@ function processOrder($srow,$notify=true){
     if($srow['tid']==0 || $srow['tid']==3){
         $typeRow = $DB->getRow("select * from pre_type where id=:id limit 1", [':id' => $srow['type']]);
         $srow['typeshowname'] = $typeRow['showname'];
-        \lib\MsgNotice::send('order', $srow['uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'type'=>$srow['typeshowname'], 'time'=>date('Y-m-d H:i:s'), 'addtime'=>$srow['addtime'], 'notify'=>$srow['notify']]);
+        \lib\MsgNotice::send('order', $srow['uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'realmoney'=>$srow['realmoney'], 'type'=>$srow['typeshowname'], 'time'=>date('Y-m-d H:i:s'), 'addtime'=>$srow['addtime'], 'notify'=>$srow['notify']]);
     }
     if($channel['daytop']>0){
         $cachekey = 'daytop'.$channel['id'].date("Ymd");
