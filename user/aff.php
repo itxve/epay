@@ -29,10 +29,10 @@ include './head.php';
         <div class="panel panel-default">
             <?php
             $lists = $DB->getAll("SELECT * FROM pre_user WHERE `ref_uid`='$uid'");
+            $total_money = 0;
             foreach ($lists as $list){
                 $uuid = $list['uid'];
                 $records = $DB->getAll("SELECT * FROM pre_record WHERE `trade_no`='$uuid' AND `type`='下级分成'");
-                $total_money = 0;
                 foreach ($records as $record){
                     if ($record['action'] == 1){
                         $total_umoney += $record['money'];
