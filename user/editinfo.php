@@ -380,7 +380,7 @@ if($_SESSION['bind_telegram'] != ""){
                                         <?php if($userrow['telegram']){?>
                                             <a class="btn btn-sm btn-success" disabled title="<?php echo $userrow['telegram']?>">已绑定</a>&nbsp;&nbsp;&nbsp;<a class="btn btn-sm btn-danger" href="./telegram.php?unbind=1" onclick="return confirm('解绑后将无法使用Telegram Bot，是否确定解绑？');">解绑</a>
                                         <?php }else{?>
-                                            <a class="btn btn-sm btn-success" href="javascript:connect('telegram')">立即绑定</a>
+                                            <a class="btn btn-sm btn-success" target="_blank" href="<?php echo $conf['telegram_boturl']."?start=".rc4("bind_".$uid."_".time(), $conf['telegram_key'], true) ?>">立即绑定</a>
                                         <?php }?>
                                     </div>
                                 </div>
