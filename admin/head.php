@@ -107,6 +107,8 @@ if ($admin_cdnpublic == 1) {
                             <li><a href="./set.php?mod=cron">计划任务配置</a>
                             <li>
                             <li><a href="./set_wxkf.php">H5跳转微信客服支付</a></li>
+                            <li>
+                            <li><a href="./set.php?mod=telegram">Telegram Bot</a></li>
                         </ul>
                     </li>
                     <li class="<?php echo checkIfActive('clean,log,transfer,transfer_add,risk,alipayrisk,export,ps_receiver,ps_order,gettoken,blacklist') ?>">

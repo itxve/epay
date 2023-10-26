@@ -1,5 +1,12 @@
 <?php
 include("../includes/common.php");
+if(isset($_GET['bind_telegram'])) {
+    $_SESSION['bind_telegram'] = $_GET['bind_telegram'];
+    $_SESSION['login_jump'] = "editinfo.php#bind";
+
+}
+
+
 if($islogin2==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
 $title='个人资料';
 include './head.php';
@@ -9,6 +16,25 @@ $mod=isset($_GET['mod'])?$_GET['mod']:'api';
 
 if(strlen($userrow['phone'])==11){
     $userrow['phone']=substr($userrow['phone'],0,3).'****'.substr($userrow['phone'],7,10);
+}
+
+if($_SESSION['bind_telegram'] != ""){
+    $bindTG = rc4($_SESSION['bind_telegram'], $conf['telegram_key']);
+    $array = explode("_", $bindTG);
+
+    $minutesDifference = (time() - $array[1]) / 60;
+    if ($minutesDifference > 1) {
+        $_SESSION['bind_telegram'] = "";
+        exit("<script language='javascript'>alert('绑定链接失效,请重新获取.');window.location.href='./editinfo.php';</script>");
+    } else {
+        if ($userrow['telegram'] == 0){
+            $DB->exec("update `pre_user` set `telegram`=". $array[0] ." where `uid`='$uid'");
+            telegramBot_SendMessage($array[0], "绑定成功！");
+            exit("<script language='javascript'>alert('Telegram绑定成功');window.location.href='./editinfo.php#bind';</script>");
+        }
+        $_SESSION['bind_telegram'] = "";
+    }
+
 }
 
 ?>
@@ -227,6 +253,17 @@ if(strlen($userrow['phone'])==11){
                                     <input class="form-control" type="text" name="qq" value="<?php echo $userrow['qq']?>">
                                 </div>
                             </div>
+                            <?php if($conf['telegram_notice'] == 1){?>
+<!--                            <div class="form-group">-->
+<!--                                <label class="col-sm-2 control-label">Telegram</label>-->
+<!--                                <div class="col-sm-9">-->
+<!--                                    <div class="input-group">-->
+<!--                                        <input class="form-control" type="text" name="telegram" value="--><?php //echo $userrow['telegram']?><!--" disabled>-->
+<!--                                        <a class="input-group-addon" target="_blank" href="--><?php //echo $conf['telegram_boturl']."?start=".rc4("bind_".$uid."_".time(), $conf['telegram_key'], true); ?><!--">修改绑定</a>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+                            <?php }?>
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">网站域名</label>
                                 <div class="col-sm-9">
@@ -252,15 +289,15 @@ if(strlen($userrow['phone'])==11){
                                 </div>
                             </div>
 
-                            <?php if($conf['wxnotice']==1){
+                            <?php if($conf['wxnotice']==1 || $conf['mailnotice']==1 || $conf['telegram_notice']==1){
                                 $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
                                 ?>
                                 <div class="line line-dashed b-b line-lg pull-in"></div>
-                                <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>微信消息提醒设置：</h4><?php if(!$userrow['wx_uid']){?><font color="#ff7373">需要先绑定微信才可以收到消息提醒</font><?php }?></div></div>
-                                <?php if($conf['wxnotice_tpl_order']){?><div class="form-group">
+                                <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>消息提醒接收设置：</h4><?php if(!$userrow['wx_uid']&&$conf['wxnotice']==1){?><font color="#ff7373">微信公众号消息需要先绑定微信才可以收到消息提醒</font><?php }?></div></div>
+                                <?php if($conf['wxnotice_tpl_order'] || $conf['msgconfig_order'] || $conf['telegram_notice']==1){?><div class="form-group">
                                     <label class="col-sm-2 control-label">新订单通知</label>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="notice_order" default="<?php echo $userrow['msgconfig']['order']?>"><option value="0">关闭</option><option value="1">开启</option></select>
+                                        <select class="form-control" name="notice_order" default="<?php echo $userrow['msgconfig']['order']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_order']){?><option value="1">开启 - 微信公众号</option><?php } if($conf['msgconfig_order'] && $conf['mailnotice']){?><option value="2">开启 - 邮件</option><?php }if($conf['telegram_notice']){?><option value="10">开启 - TelegramBot</option><?php } ?></select>
                                     </div>
                                     </div>
                                     <div class="form-group">
@@ -269,23 +306,30 @@ if(strlen($userrow['phone'])==11){
                                         <div class="input-group"><input class="form-control" type="text" name="notice_order_money" value="<?php echo $userrow['msgconfig']['order_money']?>"><span class="input-group-addon">元</span></div>
                                     </div>
                                     </div><?php }?>
-                                <?php if($conf['wxnotice_tpl_settle']){?><div class="form-group">
+                                <?php if($conf['wxnotice_tpl_settle'] || $conf['msgconfig_settle'] || $conf['telegram_notice']==1){?><div class="form-group">
                                     <label class="col-sm-2 control-label">结算通知</label>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="notice_settle" default="<?php echo $userrow['msgconfig']['settle']?>"><option value="0">关闭</option><option value="1">开启</option></select>
+                                        <select class="form-control" name="notice_settle" default="<?php echo $userrow['msgconfig']['settle']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_settle']){?><option value="1">开启 - 微信公众号</option><?php } if($conf['msgconfig_settle'] && $conf['mailnotice']){?><option value="2">开启 - 邮件</option><?php }if($conf['telegram_notice']){?><option value="10">开启 - TelegramBot</option><?php } ?></select>
                                     </div>
                                     </div><?php }?>
                                 <?php if($conf['wxnotice_tpl_login']){?><div class="form-group">
                                     <label class="col-sm-2 control-label">登录通知</label>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="notice_login" default="<?php echo $userrow['msgconfig']['login']?>"><option value="0">关闭</option><option value="1">开启</option></select>
+                                        <select class="form-control" name="notice_login" default="<?php echo $userrow['msgconfig']['login']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_login']){?><option value="1">开启 - 微信公众号</option><?php }?></select>
                                     </div>
                                     </div><?php }?>
+                                <?php if($conf['wxnotice_tpl_complain'] || $conf['msgconfig_complain']){?><div class="form-group">
+                                    <label class="col-sm-2 control-label">交易投诉通知</label>
+                                    <div class="col-sm-9">
+                                        <select class="form-control" name="notice_complain" default="<?php echo $userrow['msgconfig']['complain']?>"><option value="0">关闭</option><?php if($conf['wxnotice_tpl_complain']){?><option value="1">开启 - 微信公众号</option><?php } if($conf['msgconfig_complain']){?><option value="2">开启 - 邮件</option><?php }?></select>
+                                    </div>
+                                </div><?php }?>
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-4"><input type="button" id="editMsgConfig" value="确定修改" class="btn btn-primary form-control"/><br/>
                                     </div>
                                 </div>
                             <?php }?>
+
 
                             <?php
                             if($conf['user_settings_edit']){
@@ -328,7 +372,19 @@ if(strlen($userrow['phone'])==11){
                             </div>
 
                             <div class="line line-dashed b-b line-lg pull-in"></div>
-                            <div class="form-group"><div class="col-sm-offset-2 col-sm-4"><h4>第三方账号绑定：</h4></div></div>
+                            <div class="form-group" id="bind"><div class="col-sm-offset-2 col-sm-4"><h4>第三方账号绑定：</h4></div></div>
+                            <?php if($conf['telegram_notice']>0){?>
+                                <div class="form-group">
+                                    <div class="col-xs-6"><span class="pull-right"><i class="fa fa-telegram fa-2x fa-fw" style="color: #0BB2FF"></i>&nbsp;&nbsp;&nbsp;Telegram Bot&nbsp;&nbsp;&nbsp;</span></div>
+                                    <div class="col-xs-6">
+                                        <?php if($userrow['telegram']){?>
+                                            <a class="btn btn-sm btn-success" disabled title="<?php echo $userrow['telegram']?>">已绑定</a>&nbsp;&nbsp;&nbsp;<a class="btn btn-sm btn-danger" href="./telegram.php?unbind=1" onclick="return confirm('解绑后将无法使用Telegram Bot，是否确定解绑？');">解绑</a>
+                                        <?php }else{?>
+                                            <a class="btn btn-sm btn-success" target="_blank" href="<?php echo $conf['telegram_boturl']."?start=".rc4("bind_".$uid."_".time(), $conf['telegram_key'], true) ?>">立即绑定</a>
+                                        <?php }?>
+                                    </div>
+                                </div>
+                            <?php }?>
                             <?php if($conf['login_qq']>0){?>
                                 <div class="form-group">
                                     <div class="col-xs-6"><span class="pull-right"><i class="fa fa-qq fa-2x fa-fw" style="color: #0BB2FF"></i>&nbsp;&nbsp;&nbsp;ＱＱ快捷登录&nbsp;&nbsp;&nbsp;</span></div>

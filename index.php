@@ -16,7 +16,7 @@ if(isset($_GET['invite'])){
 
 if($mod=='index'){
     if($conf['homepage']==2){
-        echo '<html><frameset framespacing="0" border="0" rows="0" frameborder="0">
+        echo '<html><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>iframe { overflow: hidden; width: 100%; height: 100%; scrollbar-width: none; -ms-overflow-style: none; }</style><frameset framespacing="0" border="0" rows="0" frameborder="0">
         <frame name="main" src="'.$conf['homepage_url'].'" scrolling="auto" noresize>
     </frameset></html>';
         exit;

@@ -38,7 +38,7 @@ switch ($act) {
 
         foreach ($list as $row){
             if($row['type'] == "5" || $row['type'] == "6"){
-                $row['realmoney'] = $row['realmoney'] . " / " . round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
+                $row['realmoney'] = round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
             }
             $newlist[] = $row;
         }
@@ -77,19 +77,19 @@ switch ($act) {
             if ($status == 1) {
                 $sql = "update pre_settle set status='$status',endtime='$date',result=NULL where id='$id'";
 
-                $row = $DB->find('settle', 'uid,money,realmoney,account', ['id' => $id]);
-                $userrow = $DB->find('user', 'wx_uid,msgconfig', ['uid' => $row['uid']]);
-                $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-                if ($userrow['msgconfig']['settle'] == 1 && !empty($userrow['wx_uid'])) {
-                    send_wechat_tplmsg('settle', $userrow['wx_uid'], ['money' => $row['money'], 'realmoney' => $row['realmoney'], 'time' => date('Y-m-d H:i:s'), 'account' => $row['account']]);
-                }
+                $row = $DB->find('settle', 'type,uid,money,realmoney,account,addtime', ['id'=>$id]);
+                \lib\MsgNotice::send('settle', $row['uid'], ['type'=>$row['type'], 'money'=>$row['money'], 'realmoney'=>$row['realmoney'], 'time'=>date('Y-m-d H:i:s'), 'account'=>$row['account'], 'addtime'=>$row['addtime']]);
             } else {
                 $sql = "update pre_settle set status='$status',endtime=NULL where id='$id'";
             }
-            if ($DB->exec($sql) !== false)
+            if ($DB->exec($sql) !== false){
+//                if ($status == 3 || $status == 1){
+//                    telegramBot_notice("SettleNotice", ["settle_id" => $id]);
+//                }
                 exit('{"code":200}');
-            else
+            } else {
                 exit('{"code":400,"msg":"修改记录失败！[' . $DB->error() . ']"}');
+            }
         }
         break;
     case 'opslist':
@@ -219,11 +219,7 @@ switch ($act) {
             $data['result'] = '转账订单号:' . $result['orderid'] . ' 支付时间:' . $result['paydate'];
             $DB->update('settle', ['status' => 1, 'endtime' => 'NOW()', 'transfer_status' => 1, 'transfer_result' => $result["orderid"], 'transfer_date' => $result["paydate"]], ['id' => $id]);
 
-            $userrow = $DB->find('user', 'wx_uid,msgconfig', ['uid' => $row['uid']]);
-            $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-            if ($userrow['msgconfig']['settle'] == 1 && !empty($userrow['wx_uid'])) {
-                send_wechat_tplmsg('settle', $userrow['wx_uid'], ['money' => $row['money'], 'realmoney' => $row['realmoney'], 'time' => date('Y-m-d H:i:s'), 'account' => $row['account']]);
-            }
+            \lib\MsgNotice::send('settle', $row['uid'], ['type'=>$row['type'], 'money'=>$row['money'], 'realmoney'=>$row['realmoney'], 'time'=>date('Y-m-d H:i:s'), 'account'=>$row['account'], 'addtime'=>$row['addtime']]);
         } else {
             if (in_array($result['errcode'], $payee_err_code)) {
                 $data['code'] = 0;

@@ -31,10 +31,10 @@ if($rs = $db->query("SELECT v FROM pay_config WHERE k='version'")){
 	$version = $rs->fetchColumn();
 }
 
-if($version<2035){
+if($version<2037){
 	$sqls = file_get_contents('update2.sql');
 	$sqls=explode(';', $sqls);
-	$sqls[]="UPDATE `pre_config` SET `v` = '2035' where `k` = 'version'";
+	$sqls[]="UPDATE `pre_config` SET `v` = '2037' where `k` = 'version'";
 }elseif($version<2001){
 	$sqls = file_get_contents('update.sql');
 	$sqls=explode(';', $sqls);

@@ -94,6 +94,11 @@ if($conf['verifytype']==1 && empty($userrow['phone'])){
 if(empty($userrow['pwd'])){
 	echo '<div class="alert alert-warning"><span class="btn-sm btn-warning">提示</span>&nbsp;您还没有设置登录密码，请&nbsp;<a href="userinfo.php?mod=account" class="btn btn-default btn-xs">点此设置</a>，设置登录密码之后你就可以使用手机号/邮箱+密码登录</div>';
 }
+
+if(empty($userrow['telegram'])){
+    echo '<div class="alert alert-warning"><span class="btn-sm btn-warning">提示</span>&nbsp;您还没有绑定Telegram，请&nbsp;<a href="editinfo.php#bind" class="btn btn-default btn-xs">点此绑定</a>，绑定后你可以使用TelegramBot接收结算通知、订单查询等。</div>';
+}
+
 ?>
 
           <div class="row row-sm text-center">
@@ -236,7 +241,7 @@ if(empty($userrow['pwd'])){
 			公告通知
 		</div>
 		<div class="list-group">
-            <a class="list-group-item"><em class="fa fa-fw fa-volume-up"></em><font color="#ff0000"><?php echo " 今日USDT结算汇率：". $conf['settle_usdt_rate'] . "元。"?></font><span class="text-xs text-muted">&nbsp;-<?php echo date('Y-m-d 00:00:01');?></span></a>
+            <a class="list-group-item"><em class="fa fa-fw fa-volume-up"></em><font color="#ff0000"><?php echo " 当前USDT结算汇率：". $conf['settle_usdt_rate'] . "元。"?></font><span class="text-xs text-muted">&nbsp;-<?php echo date('Y-m-d 00:00:01');?></span></a>
 <?php foreach($list as $row){?>
 			<a class="list-group-item"><em class="fa fa-fw fa-volume-up"></em><font color="<?php echo $row['color']?$row['color']:null?>"><?php echo $row['content']?></font><span class="text-xs text-muted">&nbsp;-<?php echo $row['addtime']?></span></a>
 <?php }?>

@@ -62,12 +62,11 @@ switch ($act) {
                 $DB->update('user', ['qq_uid' => $qq_uid], ['uid' => $uid]);
                 unset($_SESSION['Oauth_qq_uid']);
             }
-            $city = '';
+            $city=get_ip_city($clientip);
             $DB->insert('log', ['uid' => $uid, 'type' => '普通登录', 'date' => 'NOW()', 'ip' => $clientip, 'city' => $city]);
-            $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-            if ($userrow['msgconfig']['login'] == 1 && !empty($userrow['wx_uid'])) {
-                if (!isset($_SESSION['wxnotice_login_uid']) || $_SESSION['wxnotice_login_uid'] != $uid) {
-                    send_wechat_tplmsg('login', $userrow['wx_uid'], ['user' => $user, 'clientip' => $clientip, 'ipinfo' => get_ip_city($clientip), 'time' => date('Y-m-d H:i:s')]);
+
+            if(!isset($_SESSION['wxnotice_login_uid']) || $_SESSION['wxnotice_login_uid']!=$uid){
+                if(\lib\MsgNotice::send('login', $uid, ['user'=>$user, 'clientip'=>$clientip, 'ipinfo'=>$city, 'time'=>date('Y-m-d H:i:s')])){
                     $_SESSION['wxnotice_login_uid'] = $uid;
                 }
             }
@@ -79,7 +78,10 @@ switch ($act) {
             $DB->exec("update `pre_user` set `lasttime`=NOW() where `uid`='$uid'");
             if (empty($userrow['account']) || empty($userrow['username'])) {
                 $result = array("code" => 0, "msg" => "登录成功！正在跳转到收款账号设置", "url" => "./editinfo.php?start=1");
-            } else {
+            }else if(isset($_SESSION['login_jump'])) {
+                $result = array("code" => 0, "msg" => "登录成功！正在绑定Telegram Bot", "url" => "./".$_SESSION['login_jump']);
+                unset($_SESSION['login_jump']);
+            }else {
                 $result = array("code" => 0, "msg" => "登录成功！正在跳转到用户中心", "url" => "./");
             }
             unset($_SESSION['csrf_token']);
@@ -117,6 +119,8 @@ switch ($act) {
             $QC = new \lib\QC($QC_config);
             $url = $QC->qq_login(true);
             $result = ['code' => 0, 'url' => $url];
+        } elseif ($type == 'telegram' && $conf['telegram_notice'] == 1) {
+            $result = ['code' => 0, 'url' => 'telegram.php' . ($bind == '1' ? '?bind=1' : '')];
         } elseif ($type == 'qq' && $conf['login_qq'] == 2) {
             $result = ['code' => 0, 'url' => 'connect.php' . ($bind == '1' ? '?bind=1' : '')];
         } elseif ($type == 'wx' && $conf['login_wx'] > 0) {
@@ -259,6 +263,9 @@ switch ($act) {
                 $_SESSION['reg_submit'] = time();
                 $result = array("code" => 1, "msg" => "申请商户成功！", "uid" => $uid, "key" => $key);
                 unset($_SESSION['csrf_token']);
+                if($paystatus == 2){
+                    \lib\MsgNotice::send('regaudit', 0, ['uid'=>$uid, 'account'=>$info['email']?$info['email']:$info['phone']]);
+                }
             } else {
                 $result = array("code" => -1, "msg" => "申请商户失败！" . $DB->error());
             }

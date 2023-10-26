@@ -650,6 +650,7 @@ switch ($act) {
         if ($DB->getRow("select * from pre_domain where uid=:uid and domain=:domain limit 1", [':uid' => $uid, ':domain' => $domain]))
             exit('{"code":-1,"msg":"该域名已存在，请勿重复添加"}');
         if (!$DB->exec("INSERT INTO `pre_domain` (`uid`,`domain`,`status`,`addtime`) VALUES (:uid, :domain, 0, NOW())", [':uid' => $uid, ':domain' => $domain])) exit('{"code":-1,"msg":"添加失败' . $DB->error() . '"}');
+        \lib\MsgNotice::send('domain', 0, ['uid'=>$uid, 'domain'=>$domain]);
         exit(json_encode(['code' => 0, 'msg' => '添加域名成功！']));
         break;
     case 'delDomain':
@@ -742,6 +743,19 @@ switch ($act) {
 
         exit(json_encode(['total' => $total, 'rows' => $list]));
         break;
+    case 'affrecordList':
+        $sql = " uid=$uid";
+        $sql .= " AND `type`='下级分成'";
+        if (isset($_POST['kw']) && !empty($_POST['kw'])) {
+            $kw = daddslashes($_POST['kw']);
+            $sql .= " AND `trade_no`='{$kw}'";
+        }
+        $offset = intval($_POST['offset']);
+        $limit = intval($_POST['limit']);
+        $total = $DB->getColumn("SELECT count(*) from pre_record WHERE{$sql}");
+        $list = $DB->getAll("SELECT * FROM pre_record WHERE{$sql} order by id desc limit $offset,$limit");
+        exit(json_encode(['total' => $total, 'rows' => $list]));
+        break;
     case 'settleList':
         $sql = " uid=$uid";
         if (isset($_POST['dstatus']) && $_POST['dstatus'] > -1) {
@@ -753,20 +767,24 @@ switch ($act) {
         $total = $DB->getColumn("SELECT count(*) from pre_settle WHERE{$sql}");
         $list = $DB->getAll("SELECT * FROM pre_settle WHERE{$sql} order by id desc limit $offset,$limit");
 
-        $i = 0;
-        for ($id = count($list); $id >= 1; $id--) {
-            $ids[] = $id;
-        }
-        foreach ($list as $row){
-            $row['id'] = $ids[$i];
-            if($row['type'] == "5" || $row['type'] == "6"){
-                $row['realmoney'] = $row['realmoney'] . " / " . round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
+        if (count($list)>0){
+            if($list[0]['type'] == "5" || $list[0]['type'] == "6"){
+                $list[0]['realmoney'] = $list[0]['realmoney'] . " / " . round($list[0]['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
             }
-            $i++;
-            $newlist[] = $row;
         }
-
-        exit(json_encode(['total' => $total, 'rows' => $newlist]));
+//        $i = 0;
+//        for ($id = count($list); $id >= 1; $id--) {
+//            $ids[] = $id;
+//        }
+//        foreach ($list as $row){
+//            $row['id'] = $ids[$i];
+//            if($row['type'] == "5" || $row['type'] == "6"){
+//                $row['realmoney'] = $row['realmoney'] . " / " . round($row['realmoney'] / $conf['settle_usdt_rate'], 2) . "u";
+//            }
+//            $i++;
+//            $newlist[] = $row;
+//        }
+        exit(json_encode(['total' => $total, 'rows' => $list]));
         break;
     case 'transferList':
         $sql = " uid=$uid";

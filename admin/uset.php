@@ -140,6 +140,10 @@ $group=\lib\Channel::getGroup($row['gid']);
 <input type="text" class="form-control" name="qq" value="<?php echo $row['qq']?>" placeholder="可留空">
 </div>
 <div class="form-group">
+<label>TelegramID:</label><br>
+<input type="text" class="form-control" name="telegram" value="<?php echo $row['telegram']?>" placeholder="可留空">
+</div>
+<div class="form-group">
 <label>网站域名:</label><br>
 <input type="text" class="form-control" name="url" value="<?php echo $row['url']?>" placeholder="可留空">
 </div>

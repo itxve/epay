@@ -557,7 +557,10 @@ function processOrder($srow,$notify=true){
             if($sds && !empty($info['email'])){
                 $sub = $conf['sitename'].' - 注册成功通知';
                 $msg = '<h2>商户注册成功通知</h2>感谢您注册'.$conf['sitename'].'！<br/>您的登录账号：'.$info['email'].'<br/>您的商户ID：'.$uid.'<br/>您的商户秘钥：'.$key.'<br/>'.$conf['sitename'].'官网：<a href="http://'.$_SERVER['HTTP_HOST'].'/" target="_blank">'.$_SERVER['HTTP_HOST'].'</a><br/>【<a href="http://'.$_SERVER['HTTP_HOST'].'/user/" target="_blank">商户管理后台</a>】';
-                $result = send_mail($info['email'], $sub, $msg);
+                send_mail($info['email'], $sub, $msg);
+            }
+            if($paystatus == 2){
+                \lib\MsgNotice::send('regaudit', 0, ['uid'=>$uid, 'account'=>$info['email']?$info['email']:$info['phone']]);
             }
         }
     }else if($srow['tid']==2){ //充值余额
@@ -595,11 +598,9 @@ function processOrder($srow,$notify=true){
         }
     }
     if($srow['tid']==0 || $srow['tid']==3){
-        $userrow = $DB->find('user', 'wx_uid,msgconfig', ['uid'=>$srow['uid']]);
-        $userrow['msgconfig'] = unserialize($userrow['msgconfig']);
-        if($userrow['msgconfig']['order'] == 1 && !empty($userrow['wx_uid']) && $srow['money']>=$userrow['msgconfig']['order_money']){
-            send_wechat_tplmsg('order', $userrow['wx_uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'time'=>date('Y-m-d H:i:s')]);
-        }
+        $typeRow = $DB->getRow("select * from pre_type where id=:id limit 1", [':id' => $srow['type']]);
+        $srow['typeshowname'] = $typeRow['showname'];
+        \lib\MsgNotice::send('order', $srow['uid'], ['trade_no'=>$srow['trade_no'], 'out_trade_no'=>$srow['out_trade_no'], 'name'=>$srow['name'], 'money'=>$srow['money'], 'realmoney'=>$srow['realmoney'], 'type'=>$srow['typeshowname'], 'time'=>date('Y-m-d H:i:s'), 'addtime'=>$srow['addtime'], 'notify'=>$srow['notify']]);
     }
     if($channel['daytop']>0){
         $cachekey = 'daytop'.$channel['id'].date("Ymd");
@@ -1057,5 +1058,66 @@ function revenueSharing($row){
     $addmoney = round($ordermoney * $conf['commission_rate'], 2);
     $userrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $row['uid']]);
     if (!$userrow) return;
+    if ($userrow['aff']!=1) return;
     changeUserMoney($userrow['ref_uid'], $addmoney, true, '下级分成', $row['uid']);
+}
+
+function telegramBot_notice($type, $data){
+    global $conf;
+    if($conf['telegram_notice'] != "1") return false;
+    $param = json_encode($data);
+    $ret = get_curl($conf['telegram_api'] . "/api/" . $type . "?token=" . $conf['telegram_key'], $param);
+    $data = json_decode($ret, true);
+    if ($data['code'] == 200){
+        return true;
+    }
+    return false;
+}
+
+function telegramBot_SendMessage($tid, $msg){
+    global $conf;
+    $param = json_encode(['tid' => $tid, 'msg'=>$msg]);
+    $ret = get_curl($conf['telegram_api']."/api/SendMessage?token=" . $conf['telegram_key'], $param);
+    $data = json_decode($ret, true);
+    if ($data['code'] == 200){
+        return true;
+    }
+    return false;
+}
+
+function rc4($str, $key, $Encrypt=false) {
+    if (!$Encrypt) {
+        $str = str_replace("-", "+", $str);
+        $str = str_replace("_", "/", $str);
+        $str = base64_decode($str);
+    }
+    $s = array();
+    for ($i = 0; $i < 256; $i++) {
+        $s[$i] = $i;
+    }
+    $j = 0;
+    for ($i = 0; $i < 256; $i++) {
+        $j = ($j + $s[$i] + ord($key[$i % strlen($key)])) % 256;
+        $tmp = $s[$i];
+        $s[$i] = $s[$j];
+        $s[$j] = $tmp;
+    }
+    $i = $j = 0;
+    $res = '';
+    for ($y = 0; $y < strlen($str); $y++) {
+        $i = ($i + 1) % 256;
+        $j = ($j + $s[$i]) % 256;
+        $tmp = $s[$i];
+        $s[$i] = $s[$j];
+        $s[$j] = $tmp;
+        $res .= $str[$y] ^ chr($s[($s[$i] + $s[$j]) % 256]);
+    }
+
+    if ($Encrypt) {
+        $res = base64_encode($res);
+        $res = str_replace("+", "-", $res);
+        return str_replace("/", "_", $res);
+    } else {
+        return $res;
+    }
 }
