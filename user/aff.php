@@ -41,7 +41,7 @@ include './head.php';
                     }
                 }
                 $total_money += $total_umoney;
-                $table_list .= "<tr><td>".$uuid."</td><td>".round($total_umoney, 2)."</td></tr>";
+                $table_list .= "<tr><td>".$uuid."</td><td>".round($total_umoney, 2). "</td></tr>";
             }
             ?>
             <div class="panel-heading font-bold">
