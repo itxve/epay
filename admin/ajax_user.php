@@ -294,6 +294,7 @@ switch ($act) {
             'email' => trim($_POST['email']),
             'qq' => trim($_POST['qq']),
             'phone' => trim($_POST['phone']),
+            'telegram' => trim($_POST['telegram']),
             'cert' => intval($_POST['cert']),
             'certtype' => intval($_POST['certtype']),
             'certmethod' => intval($_POST['certmethod']),
