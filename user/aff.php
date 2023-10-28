@@ -33,10 +33,11 @@ include './head.php';
             foreach ($lists as $list){
                 $uuid = $list['uid'];
                 $records = $DB->getAll("SELECT * FROM pre_record WHERE `trade_no`='$uuid' AND `type`='下级分成'");
+                $total_umoney = 0;
                 foreach ($records as $record){
                     if ($record['action'] == 1){
                         $total_umoney += $record['money'];
-                    }else if ($record['action'] == 1){
+                    }else if ($record['action'] == 2){
                         $total_umoney -= $record['money'];
                     }
                 }
