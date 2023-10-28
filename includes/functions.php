@@ -1058,7 +1058,8 @@ function revenueSharing($row){
     $addmoney = round($ordermoney * $conf['commission_rate'], 2);
     $userrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $row['uid']]);
     if (!$userrow) return;
-    if ($userrow['aff']!=1) return;
+    $affrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $userrow['ref_uid']]);
+    if ($affrow['aff']!=1) return;
     changeUserMoney($userrow['ref_uid'], $addmoney, true, '下级分成', $row['uid']);
 }
 
