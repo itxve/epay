@@ -507,6 +507,8 @@ function get_main_host($url){
 }
 
 function do_notify($url){
+    global $conf;
+    if($conf['proxy_url_open'] == 2) $url = $conf['proxy_url'].$url;
     $return = curl_get($url);
     if(strpos($return,'success')!==false || strpos($return,'SUCCESS')!==false || strpos($return,'Success')!==false){
         return true;

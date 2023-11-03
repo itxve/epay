@@ -1303,9 +1303,18 @@ elseif($mod=='proxy'){
 	</div><br/>
     <hr>
       <div class="form-group">
-          <label class="col-sm-2 control-label">URL代理</label>
-          <div class="col-sm-10"><input type="text" name="proxy_url" value="<?php echo $conf['proxy_url']; ?>" class="form-control" placeholder="留空则不开启, URL结尾必须加/" /></div>
+          <label class="col-sm-2 control-label">URL代理开关</label>
+          <div class="col-sm-10"><select class="form-control" name="proxy_url_open" default="<?php echo $conf['proxy_url_open']?>">
+                  <option value="0">关闭</option>
+                  <option value="1">仅重新通知时使用</option>
+                  <option value="2">全部开启</option>
+              </select></div>
       </div><br/>
+      <div class="form-group">
+          <label class="col-sm-2 control-label">URL代理</label>
+          <div class="col-sm-10"><input type="text" name="proxy_url" value="<?php echo $conf['proxy_url']; ?>" class="form-control" placeholder="URL结尾必须加/" /></div>
+      </div><br/>
+
 	<div class="form-group">
 	  <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary btn-block"/><br/>
 	 </div>
@@ -1315,8 +1324,8 @@ elseif($mod=='proxy'){
 <div class="panel-footer">
 <span class="glyphicon glyphicon-info-sign"></span>
 本功能开启后，在支付成功异步回调的时候，使用中转代理访问商户网站，可解决一些只能国内访问的网站回调问题，也可以防止本站服务器IP泄露。<br/>
-自定义代理可以使用Windows服务器+CCProxy软件搭建<br/>
-2023.11.03新增; URL代理开启后第一次异步通知失败后会使用此方式重新通知一次。
+自定义代理可以使用Windows服务器+CCProxy软件搭建<br/><br/>
+2023.11.03新增URL代理; 开启"仅重新通知时使用"后第一次异步通知失败后会使用URL代理重新通知一次, 全部开启则所有异步回调都使用URL代理。
 </div>
 </div>
 <?php

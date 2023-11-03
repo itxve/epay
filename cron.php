@@ -142,13 +142,14 @@ elseif($_GET['do']=='notify'){
         $DB->exec("UPDATE pre_order SET notify={$notify},notifytime=date_add(now(), interval {$interval}) WHERE trade_no='{$srow['trade_no']}'");
 
         $url=creat_callback($srow);
+        if($conf['proxy_url_open'] != 0) $url['notify'] = $conf['proxy_url'].$url['notify'];
         if(do_notify($url['notify'])){
             $DB->exec("UPDATE pre_order SET notify=0,notifytime=NULL WHERE trade_no='{$srow['trade_no']}'");
             echo $srow['trade_no'].' 重新通知成功<br/>';
         }else{
             if ($notify == 1){
                 // 通知失败 用代理URL重新通知
-                if($conf['proxy_url'] != "") $or = do_notify($conf['proxy_url'].$url['notify']);
+                if($conf['proxy_url_open'] != 1) $or = do_notify($conf['proxy_url'].$url['notify']);
                 if($or){
                     $DB->exec("UPDATE pre_order SET notify=0,notifytime=NULL WHERE trade_no='{$srow['trade_no']}'");
                 } else {
