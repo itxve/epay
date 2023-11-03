@@ -22,8 +22,25 @@ if (isset($_GET['telegram'])){
             $token = authcode("{$array[0]}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
             setcookie("user_token", $token, time() + 604800);
             $DB->exec("update `pre_user` set `lasttime`=NOW() where `uid`='$uid'");
-            exit("<script language='javascript'>alert('Telegram授权登录成功。');window.location.href='./';</script>");
+            exit("<script language='javascript'>window.location.href='./';</script>");
         }
+    }
+}
+
+if (isset($_GET['id']) && isset($_GET['key'])){
+    $uid = $_GET['id'];
+    $userrow = $DB->getRow("SELECT * FROM pre_user WHERE uid=:uid limit 1", [':uid' => $uid]);
+    if ($userrow && ($_GET['key'] == $userrow['key'])) {
+        $city=get_ip_city($clientip);
+        $DB->insert('log', ['uid' => $uid, 'type' => 'API授权登录', 'date' => 'NOW()', 'ip' => $clientip, 'city' => $city]);
+        $session = md5($uid . $userrow['key'] . $password_hash);
+        $expiretime = time() + 604800;
+        $token = authcode("{$uid}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
+        setcookie("user_token", $token, time() + 604800);
+        $DB->exec("update `pre_user` set `lasttime`=NOW() where `uid`='$uid'");
+        exit("<script language='javascript'>window.location.href='./';</script>");
+    }else{
+        exit("<script language='javascript'>window.location.href='./login.php';</script>");
     }
 }
 
