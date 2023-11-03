@@ -146,13 +146,20 @@ elseif($_GET['do']=='notify'){
             $DB->exec("UPDATE pre_order SET notify=0,notifytime=NULL WHERE trade_no='{$srow['trade_no']}'");
             echo $srow['trade_no'].' 重新通知成功<br/>';
         }else{
-            if ($notify > 1){
-                $srow['notify'] = $notify;
-                $srow['notify_url'] = $url['notify'];
-                $typeRow = $DB->getRow("select * from pre_type where id=:id limit 1", [':id' => $srow['type']]);
-                $srow['typeshowname'] = $typeRow['showname'];
-                \lib\MsgNotice::send('order_notify', 0, $srow);
+            if ($notify == 1){
+                // 通知失败 用代理URL重新通知
+                if($conf['proxy_url'] != "") $or = do_notify($conf['proxy_url'].$url['notify']);
+                if($or){
+                    $DB->exec("UPDATE pre_order SET notify=0,notifytime=NULL WHERE trade_no='{$srow['trade_no']}'");
+                } else {
+                    $srow['notify'] = $notify;
+                    $srow['notify_url'] = $url['notify'];
+                    $typeRow = $DB->getRow("select * from pre_type where id=:id limit 1", [':id' => $srow['type']]);
+                    $srow['typeshowname'] = $typeRow['showname'];
+                    \lib\MsgNotice::send('order_notify', 0, $srow);
+                }
             }
+
             echo $srow['trade_no'].' 重新通知失败（第'.$notify.'次）<br/>';
         }
     }

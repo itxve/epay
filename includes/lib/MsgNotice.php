@@ -63,7 +63,7 @@ class MsgNotice
         }else if($scene == 'apply'){
             $content = "📢".$conf['sitename']."商户发起了手动提现申请，请及时处理。\n商户ID：".$param['uid']."\n提现方式：".$param['type']."\n提现金额：".$param['realmoney']."\n提交时间：".date('Y-m-d H:i:s');
         } else if($scene == 'order_notify'){
-            $content = "⚠️⚠️订单异步通知失败。\n系统订单号：`".$param['trade_no']."`\n商户订单号：`".$param['out_trade_no']."`\n商品名称：".$param['name']."\n订单金额：￥".$param['realmoney']."\n支付方式：".$param['typeshowname']."\n订单时间：".$param['addtime']."\n支付时间：".$param['endtime']."\n❌通知失败:".$param['notify']."次\n\n[重新通知](" . $param['notify_url'] . ")";
+            $content = "⚠️⚠️订单异步通知失败。\n系统订单号：`".$param['trade_no']."`\n商户订单号：`".$param['out_trade_no']."`\n商品名称：".$param['name']."\n订单金额：￥".$param['realmoney']."\n支付方式：".$param['typeshowname']."\n订单时间：".$param['addtime']."\n支付时间：".$param['endtime']."\n❌通知失败，[重新通知](" . $param['notify_url'] . ")";
         }
         if ($content=="") return false;
         telegramBot_SendMessage($tid, $content);
