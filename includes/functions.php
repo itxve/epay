@@ -15,13 +15,10 @@ function create_ordernum() {
     return $prefix . $datetime . $randomPart;
 }
 function dwz($url){
-    $dwzapi = "http://3oe.cn/api.php";
-    $p = "?type=toShort";
-    $p .= "&kind=3oe.cn";
-    $p .= "&url=$url";
-    $p .= "&endtime=15";
-    $p .= "&key=qq199466";
-    $return = json_decode(curl_get($dwzapi.$p), true);
+    global $conf;
+    if (empty($conf['shorturl_api'])) return $url;
+    $dwzapi = $conf['shorturl_api']."/api.php?type=toShort&url=$url&endtime=15&key=".$conf['horturl_key'];
+    $return = json_decode(curl_get($dwzapi), true);
     $dwz = $return['url'];
     if(empty($dwz)) $dwz = $url;
     return $dwz;

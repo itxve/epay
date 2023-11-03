@@ -11,7 +11,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
     <div class="col-xs-12 col-sm-10 col-lg-8 center-block" style="float: none;">
 <?php
 $mod=isset($_GET['mod'])?$_GET['mod']:null;
-$mods=['site'=>'网站信息','pay'=>'支付相关','settle'=>'结算规则','transfer'=>'企业付款','oauth'=>'快捷登录','notice'=>'消息提醒','certificate'=>'实名认证','template'=>'首页模板','gonggao'=>'公告与排版','mail'=>'邮箱与短信','upimg'=>'LOGO设置','iptype'=>'IP地址','cron'=>'计划任务','proxy'=>'中转代理','account'=>'修改密码','telegram'=>'TelegramBot'];
+$mods=['site'=>'网站信息','pay'=>'支付相关','settle'=>'结算规则','transfer'=>'企业付款','oauth'=>'快捷登录','notice'=>'消息提醒','certificate'=>'实名认证','template'=>'首页模板','gonggao'=>'公告与排版','mail'=>'邮箱与短信','upimg'=>'LOGO设置','iptype'=>'IP地址','cron'=>'计划任务','proxy'=>'中转代理','account'=>'修改密码','enzo'=>'Enzo'];
 ?>
 <ul class="nav nav-pills">
 	<?php foreach($mods as $key=>$name){echo '<li class="'.($key==$mod?'active':null).'"><a href="set.php?mod='.$key.'">'.$name.'</a></li>';} ?>
@@ -1043,8 +1043,35 @@ $("select[name='sms_api']").change(function(){
         showmsg('Telegram Bot配置已生效！',1);
     }
     showmsg('未生效',1);
-}elseif($mod=='telegram'){
+}elseif($mod=='enzo'){
 ?>
+<div class="panel panel-primary">
+    <div class="panel-heading"><h3 class="panel-title">短网址</h3></div>
+    <div class="panel-body">
+        <form onsubmit="return saveSetting(this)" method="post" class="form-horizontal" role="form">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">短网址</label>
+                <div class="col-sm-10"><input type="text" name="shorturl_api" value="<?php echo $conf['shorturl_api']; ?>" class="form-control"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Key</label>
+                <div class="col-sm-10"><input type="text" name="horturl_key" value="<?php echo $conf['horturl_key']; ?>" class="form-control"/></div>
+            </div><br/>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
+                </div><br/>
+            </div>
+        </form>
+
+    </div>
+    <div class="panel-footer">
+            <span class="glyphicon glyphicon-info-sign"></span>
+            扫码地址生成。 <a href="https://github.com/mrlihx/ShortUrl" target="_blank">下载源码</a><br/>
+        </div>
+</div>
+
 <div class="panel panel-primary">
     <div class="panel-heading"><h3 class="panel-title">TelegramBot消息推送</h3></div>
     <div class="panel-body">
@@ -1116,7 +1143,7 @@ $("select[name='sms_api']").change(function(){
     </div>
     <div class="panel-footer">
         <span class="glyphicon glyphicon-info-sign"></span>
-        Tg API代理：可以直接使用https://tg-bot.0x23.cf/ 或 https://tgbot.hostport.top, 如果反应慢可以自己用海外服务器搭建Nginx反向代理到 https://api.telegram.org<br/>
+        Tg API代理：可以直接使用https://tg-bot.0x23.cf 或 https://tgbot.hostport.top, 如果反应慢可以自己用海外服务器搭建Nginx反向代理到 https://api.telegram.org<br/>
     </div>
 </div>
 <?php
