@@ -121,6 +121,16 @@ switch ($act) {
         ];
         exit(json_encode($result));
         break;
+
+    case 'getUsdtRate':
+        exit('{"code":0,"msg":"获取成功","usdtrate":"'.$conf['settle_usdt_rate'].'"}');
+        break;
+    case 'saveUsdtRate':
+        saveSetting("settle_usdt_rate", $_POST['usdtrate']);
+        $ad = $CACHE->clear();
+        if ($ad) exit('{"code":0,"msg":"USDT汇率修改成功。"}');
+        else exit('{"code":-1,"msg":"USDT汇率修改失败[' . $DB->error() . ']"}');
+        break;
     default:
         exit('{"code":-4,"msg":"No Act"}');
         break;

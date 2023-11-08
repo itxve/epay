@@ -32,12 +32,40 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">批量修改 <span class="caret"></span></button>
 	<ul class="dropdown-menu"><li><a href="javascript:operation(0)">待结算</a></li><li><a href="javascript:operation(1)">已完成</a></li><li><a href="javascript:operation(2)">正在结算</a></li><li><a href="javascript:operation(3)">结算失败</a></li><li><a href="javascript:operation(4)">删除记录</a></li></ul>
   </div>
+    <button type="submit" class="btn btn-danger" onclick="editRate()" >修改USDT汇率</button>
 </form>
 
 	  <table id="listTable">
 	  </table>
     </div>
   </div>
+
+<div class="modal" id="modal-store" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated flipInX">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span
+                            class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="modal-title">用户组修改/添加</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="form-store">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label no-padding-right">USDT汇率</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="usdtrate" id="usdtrate" placeholder="7.3">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="store" onclick="saveRate()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="<?php echo $cdnpublic?>layer/3.1.1/layer.min.js"></script>
 <script src="<?php echo $cdnpublic?>bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
 <script src="<?php echo $cdnpublic?>bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
@@ -299,5 +327,50 @@ function saveInfo(id) {
 			$('#save').val('保存');
 		} 
 	});
+}
+
+
+function editRate(){
+    var ii = layer.load(2, {shade:[0.1,'#fff']});
+    $.ajax({
+        type : 'GET',
+        url : 'ajax.php?act=getUsdtRate',
+        dataType : 'json',
+        success : function(data) {
+            layer.close(ii);
+            if(data.code == 0){
+                $("#modal-store").modal('show');
+                $("#modal-title").html("修改USDT汇率");
+                $("#usdtrate").val(data.usdtrate);
+            }else{
+                layer.alert(data.msg, {icon: 2})
+            }
+        },
+        error:function(data){
+            layer.msg('服务器错误');
+            return false;
+        }
+    });
+}
+
+function saveRate(){
+    $.ajax({
+        type : 'POST',
+        url : 'ajax.php?act=saveUsdtRate',
+        data : $("#form-store").serialize(),
+        dataType : 'json',
+        success : function(data) {
+            layer.alert(data.msg,{
+                icon: 1,
+                closeBtn: false
+            }, function(){
+                window.location.reload()
+            });
+        },
+        error:function(data){
+            layer.msg('服务器错误');
+            return false;
+        }
+    });
 }
 </script>

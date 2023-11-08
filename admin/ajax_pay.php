@@ -301,6 +301,8 @@ switch ($act) {
 
         $note = str_replace(['[siteurl]', '[channel]'], [$siteurl, $id], $plugin['note']);
 
+        if ($row['plugin'] == "epay") $data .= '<div class="form-group"><a href="'.$row['appurl'].'user/login.php?id='.$row['appid'].'&key='.$row['appkey'].'" target="_blank">登录易支付用户中心</a></div>';
+
         $data .= '<button type="button" id="save" onclick="saveInfo(' . $id . ')" class="btn btn-primary btn-block">保存</button></form><br/><font color="green">' . $note . '</font></div>';
         $result = array("code" => 0, "msg" => "succ", "data" => $data);
         exit(json_encode($result));

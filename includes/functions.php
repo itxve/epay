@@ -15,13 +15,10 @@ function create_ordernum() {
     return $prefix . $datetime . $randomPart;
 }
 function dwz($url){
-    $dwzapi = "http://3oe.cn/api.php";
-    $p = "?type=toShort";
-    $p .= "&kind=3oe.cn";
-    $p .= "&url=$url";
-    $p .= "&endtime=15";
-    $p .= "&key=qq199466";
-    $return = json_decode(curl_get($dwzapi.$p), true);
+    global $conf;
+    if (empty($conf['shorturl_api'])) return $url;
+    $dwzapi = $conf['shorturl_api']."/api.php?type=toShort&url=$url&endtime=15&key=".$conf['horturl_key'];
+    $return = json_decode(curl_get($dwzapi), true);
     $dwz = $return['url'];
     if(empty($dwz)) $dwz = $url;
     return $dwz;
@@ -507,6 +504,8 @@ function get_main_host($url){
 }
 
 function do_notify($url){
+    global $conf;
+    if($conf['proxy_url_open'] == 2) $url = $conf['proxy_url'].$url;
     $return = curl_get($url);
     if(strpos($return,'success')!==false || strpos($return,'SUCCESS')!==false || strpos($return,'Success')!==false){
         return true;
@@ -1058,7 +1057,8 @@ function revenueSharing($row){
     $addmoney = round($ordermoney * $conf['commission_rate'], 2);
     $userrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $row['uid']]);
     if (!$userrow) return;
-    if ($userrow['aff']!=1) return;
+    $affrow = $DB->getRow("select * from pre_user where uid=:uid limit 1", [':uid' => $userrow['ref_uid']]);
+    if ($affrow['aff']!=1) return;
     changeUserMoney($userrow['ref_uid'], $addmoney, true, '下级分成', $row['uid']);
 }
 

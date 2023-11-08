@@ -29,19 +29,20 @@ include './head.php';
         <div class="panel panel-default">
             <?php
             $lists = $DB->getAll("SELECT * FROM pre_user WHERE `ref_uid`='$uid'");
+            $total_money = 0;
             foreach ($lists as $list){
                 $uuid = $list['uid'];
                 $records = $DB->getAll("SELECT * FROM pre_record WHERE `trade_no`='$uuid' AND `type`='下级分成'");
-                $total_money = 0;
+                $total_umoney = 0;
                 foreach ($records as $record){
                     if ($record['action'] == 1){
                         $total_umoney += $record['money'];
-                    }else if ($record['action'] == 1){
+                    }else if ($record['action'] == 2){
                         $total_umoney -= $record['money'];
                     }
                 }
                 $total_money += $total_umoney;
-                $table_list .= "<tr><td>".$uuid."</td><td>".round($total_umoney, 2)."</td></tr>";
+                $table_list .= "<tr><td>".$uuid."</td><td>".round($total_umoney, 2). "</td></tr>";
             }
             ?>
             <div class="panel-heading font-bold">
